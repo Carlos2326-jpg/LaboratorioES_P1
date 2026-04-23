@@ -1,0 +1,28 @@
+# Dependências
+node_modules/
+package-lock.json
+
+# Variáveis de ambiente (segurança)
+.env
+
+# Logs e arquivos temporários
+*.log
+logs/
+*.tmp
+test-db.js
+
+# Sistemas operacionais
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Build e dados locais
+dist/
+build/
+*.sqlite
+*.db
