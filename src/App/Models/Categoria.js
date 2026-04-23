@@ -54,4 +54,4 @@ class Categorias {
     }
 }
 
-module.exports = Cliente;
+module.exports = Categorias;
