@@ -1,18 +1,23 @@
 class Usuario {
-
-    function Creat(dadosUser) {
+    Creat(dadosUser) {
         let dados = JSON.parse(localStorage.getItem('dados')) || [];
         dados.push(dadosUser);
-        localStorage.setItem('dados', JSON.stringify('dados'));
+        localStorage.setItem('dados', JSON.stringify(dados)); 
     }
 
-    function Read() {
+    Read() {
         return JSON.parse(localStorage.getItem('dados')) || [];
     }
 
-    function Delete(id) {
-        let dados = Read();
-        dados.aplice(id, 1);
+    Update(id, dadosUser) {
+        let dados = this.Read(); 
+        dados[id] = dadosUser;
+        localStorage.setItem('dados', JSON.stringify(dados));
+    }
+
+    Delete(id) {
+        let dados = this.Read(); 
+        dados.splice(id, 1); 
         localStorage.setItem('dados', JSON.stringify(dados));
     }
 }
