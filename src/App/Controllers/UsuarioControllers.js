@@ -1,55 +1,58 @@
-// App/Controllers/UsuarioController.js
+const UsuarioModel = require("../Models/Usuario");
 
-const Usuario = require("../Models/Usuario");
+const usuario = new UsuarioModel({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "BlogNoticias"
+});
 
-function login(req, res) {
+function temPermissao(req, niveis) {
+    return niveis.includes(req.usuario.nivelAcesso);
+}
+
+async function login(req, res) {
     const { email, senha } = req.body;
 
-    const usuario = Usuario.buscarPorEmail(email);
+    const user = await usuario.login(email, senha);
 
-    if (!usuario || usuario.senha !== senha) {
+    if (!user) {
         return res.status(401).json({ erro: "Email ou senha inválidos" });
     }
 
-    res.json({ mensagem: "Login realizado com sucesso" });
+    res.json({ mensagem: "Login realizado com sucesso", user });
 }
 
-function cadastrar(req, res) {
+async function cadastrar(req, res) {
     const { nome, email, confirmarEmail, senha, confirmarSenha } = req.body;
 
-    if (email !== confirmarEmail) {
-        return res.json({ erro: "Emails não coincidem" });
+    if (email !== confirmarEmail) return res.json({ erro: "Emails não coincidem" });
+    if (senha !== confirmarSenha) return res.json({ erro: "Senhas não coincidem" });
+    if (senha.length < 8) return res.json({ erro: "Senha fraca" });
+
+    try {
+        const novo = await usuario.create({
+            nomeCompleto: nome,
+            email,
+            senha,
+            nivelAcesso: "autor" 
+        });
+
+        res.json({ mensagem: "Usuário criado", usuario: novo });
+
+    } catch (e) {
+        res.json({ erro: e.message });
     }
-
-    if (senha !== confirmarSenha) {
-        return res.json({ erro: "Senhas não coincidem" });
-    }
-
-    if (senha.length < 8) {
-        return res.json({ erro: "Senha muito fraca" });
-    }
-
-    const existe = Usuario.buscarPorEmail(email);
-
-    if (existe) {
-        return res.json({ erro: "Email já cadastrado" });
-    }
-
-    Usuario.criar({ nome, email, senha, role: "leitor" });
-
-    res.json({ mensagem: "Usuário cadastrado" });
 }
 
-function listarUsuarios(req, res) {
-    // simulando usuário logado
-    req.usuario = { role: "admin" };
+async function listarUsuarios(req, res) {
+    req.usuario = { nivelAcesso: "admin" }; 
 
-    if (req.usuario.role !== "admin") {
+    if (!temPermissao(req, ["admin"])) {
         return res.json({ erro: "Sem permissão" });
     }
 
-    const usuarios = Usuario.buscarTodos();
-
+    const usuarios = await usuario.all();
     res.json(usuarios);
 }
 
