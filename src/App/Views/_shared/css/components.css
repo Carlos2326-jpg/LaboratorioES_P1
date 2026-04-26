@@ -1,0 +1,96 @@
+/* Página de Login */
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espaco);
+}
+
+.login-card {
+    background: var(--cor-branco);
+    border-radius: var(--raio);
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.login-card h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.login-card p {
+    color: var(--cor-texto-suave);
+    margin-bottom: 1.5rem;
+}
+
+/* Campos de Formulário */
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.campo label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.campo input {
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.campo input:focus {
+    border-color: var(--cor-primaria);
+}
+
+.campo input.input-erro {
+    border-color: var(--cor-erro);
+}
+
+.erro {
+    font-size: 0.75rem;
+    color: var(--cor-erro);
+    min-height: 1rem;
+}
+
+  /* Botões */
+
+.btn {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: var(--raio);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 1rem;
+}
+
+.btn-primario {
+    background-color: var(--cor-primaria);
+    color: var(--cor-branco);
+}
+
+.btn-primario:hover {
+    background-color: var(--cor-primaria-hover);
+}
+
+/* Links Auxiliares */
+
+.link-cadastro {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--cor-texto-suave);
+}
