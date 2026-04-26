@@ -25,3 +25,8 @@ noticias.forEach(n => {
 
   container.appendChild(card);
 });
+
+document.getElementById("logout").addEventListener("click", () => {
+  localStorage.removeItem("usuario");
+  window.location.href = "../Usuario/index.html";
+});
