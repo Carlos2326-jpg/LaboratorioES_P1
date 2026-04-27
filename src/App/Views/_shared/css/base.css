@@ -2,13 +2,18 @@
     --cor-primaria: #2563eb;
     --cor-primaria-hover: #1d4ed8;
     --cor-erro: #dc2626;
+    --cor-sucesso: #16a34a;
+    --cor-aviso: #d97706;
     --cor-texto: #111827;
     --cor-texto-suave: #6b7280;
     --cor-borda: #d1d5db;
     --cor-fundo: #f3f4f6;
     --cor-branco: #ffffff;
+    --cor-card: #ffffff;
     --raio: 8px;
     --espaco: 1rem;
+    --sombra: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --sombra-hover: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
 
 * {
@@ -21,6 +26,7 @@ body {
     font-family: system-ui, -apple-system, sans-serif;
     color: var(--cor-texto);
     background-color: var(--cor-fundo);
+    line-height: 1.6;
 }
 
 a {
@@ -30,4 +36,24 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--espaco);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
 }
