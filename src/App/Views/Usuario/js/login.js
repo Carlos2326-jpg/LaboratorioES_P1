@@ -3,6 +3,7 @@ import { validarEmail, validarSenha, campoVazio } from '../../_shared/js/validac
 const form = document.getElementById('form-login');
 const inputEmail = document.getElementById('email');
 const inputSenha = document.getElementById('senha');
+const alertaGlobal = document.getElementById('alerta-global');
 
 function mostrarErro(inputEl, erroEl, mensagem) {
     inputEl.classList.add('input-erro');
@@ -23,6 +24,7 @@ function validarFormulario() {
 
     limparErro(inputEmail, erroEmail);
     limparErro(inputSenha, erroSenha);
+    alertaGlobal.style.display = 'none';
 
     if (campoVazio(email)) {
         mostrarErro(inputEmail, erroEmail, 'Informe seu e-mail.');
@@ -43,18 +45,11 @@ function validarFormulario() {
     return valido;
 }
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     if (!validarFormulario()) return;
 
-    document.getElementById("form-login").addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      // validação básica (trocar depois)
-      
-      localStorage.setItem("usuario", "logado");
-
-      window.location.href = "../Home/index.html";
-    });
+    // Aí aqui embaixo a gente compara fml depois no caso
+    console.log('Login enviado:', { email: inputEmail.value });
+    window.location.href = '../Home/index.html';
 });

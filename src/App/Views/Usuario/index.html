@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../_shared/css/base.css">
-  <link rel="stylesheet" href="../_shared/css/components.css">
-  <title>Login - Blog de Notícias</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – Blog de Notícias</title>
+    <link rel="stylesheet" href="../_shared/css/base.css">
+    <link rel="stylesheet" href="../_shared/css/components.css">
 </head>
 <body>
-  <body>
-    <main class="login-page">
-        <article class="login-card">
+    <main class="auth-page">
+        <article class="auth-card">
             <h1>Blog de Notícias</h1>
-            <p>Entre com sua conta</p>
+            <p class="subtitulo">Entre com sua conta</p>
+
+            <div class="alerta alerta-erro" id="alerta-global" style="display:none;"></div>
 
             <form id="form-login" novalidate>
                 <div class="campo">
                     <label for="email">E-mail</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
                         placeholder="seu@email.com"
                         required
                     >
@@ -29,10 +30,10 @@
 
                 <div class="campo">
                     <label for="senha">Senha</label>
-                    <input 
-                        type="password" 
-                        id="senha" 
-                        name="senha" 
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
                         placeholder="Mínimo 8 caracteres"
                         required
                     >
@@ -42,8 +43,8 @@
                 <button type="submit" class="btn btn-primario">Entrar</button>
             </form>
 
-            <p class="link-cadastro">
-                Não tem conta? <a href="../Cadastro/index.html">Cadastre-se</a>
+            <p class="auth-link">
+                Não tem conta? <a href="../Usuario/cadastro.html">Cadastre-se</a>
             </p>
         </article>
     </main>
