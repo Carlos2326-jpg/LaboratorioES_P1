@@ -1,0 +1,25 @@
+<nav class="navbar">
+  <div class="navbar__inner">
+    <a href="/" class="navbar__logo">📰 Blog de Notícias</a>
+    <div class="navbar__busca">
+      <input type="text" id="campo-busca" placeholder="Buscar notícias..." />
+      <button class="btn btn-primario btn-sm" onclick="buscar()">Buscar</button>
+    </div>
+    <div class="navbar__acoes">
+      <a href="/noticia/criar" class="btn btn-secundario btn-sm"
+        >+ Nova Postagem</a
+      >
+      <a href="/usuario/login" class="btn btn-secundario btn-sm">Entrar</a>
+      <a href="/usuario/cadastro" class="btn btn-primario btn-sm">Cadastrar</a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  function buscar() {
+    const termo = document.getElementById("campo-busca").value.trim();
+    if (termo) {
+      window.location.href = `/?busca=${encodeURIComponent(termo)}`;
+    }
+  }
+</script>

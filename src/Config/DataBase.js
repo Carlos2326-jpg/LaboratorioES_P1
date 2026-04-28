@@ -1,23 +1,50 @@
-// Carrega as variáveis do arquivo .env
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const mysql = require('mysql2');
-
-// Usa as variáveis de ambiente
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST,        // lê do .env
-    user: process.env.DB_USER,        // lê do .env
-    password: process.env.DB_PASSWORD, // lê do .env (seguro!)
-    database: process.env.DB_NAME,     // lê do .env
-    port: process.env.DB_PORT || 3306  // usa padrão se não existir
-});
-
-connection.connect((err) => {
-    if (err) {
-        console.error('❌ Erro ao conectar:', err.message);
-        return;
+class Database {
+    constructor() {
+        this.pool = null;
     }
-    console.log('✅ Conectado ao banco:', process.env.DB_NAME);
-});
 
-module.exports = connection;
+    async connect() {
+        if (!this.pool) {
+            this.pool = mysql.createPool({
+                host: process.env.DB_HOST || 'localhost',
+                user: process.env.DB_USER || 'root',
+                password: process.env.DB_PASSWORD || '',
+                database: process.env.DB_NAME || 'blog',
+                port: parseInt(process.env.DB_PORT) || 3306,
+                waitForConnections: true,
+                connectionLimit: 10,
+                queueLimit: 0,
+                acquireTimeout: 60000,
+                timeout: 60000
+            });
+        }
+        return this.pool;
+    }
+
+    async getConnection() {
+        const pool = await this.connect();
+        return await pool.getConnection();
+    }
+
+    async query(sql, params = []) {
+        const pool = await this.connect();
+        try {
+            const [rows] = await pool.execute(sql, params);
+            return rows;
+        } catch (error) {
+            console.error('Erro na query:', error);
+            throw error;
+        }
+    }
+
+    async end() {
+        if (this.pool) {
+            await this.pool.end();
+        }
+    }
+}
+
+module.exports = new Database();

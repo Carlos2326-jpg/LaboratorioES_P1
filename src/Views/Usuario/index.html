@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Blog de Notícias</title>
+    <link rel="stylesheet" href="../_shared/css/base.css" />
+    <link rel="stylesheet" href="../_shared/css/components.css" />
+  </head>
+  <body>
+    <main class="auth-page">
+      <div class="auth-card">
+        <h1>📰 Blog de Notícias</h1>
+        <p class="subtitulo">Faça login para continuar</p>
+
+        <div id="alert-container"></div>
+
+        <form id="form-login">
+          <div class="campo">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" required />
+          </div>
+
+          <div class="campo">
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" required />
+          </div>
+
+          <button type="submit" class="btn btn-primario">Entrar</button>
+
+          <p class="auth-link">
+            <a href="/usuario/redefinir-senha">Esqueceu a senha?</a>
+          </p>
+        </form>
+
+        <p class="auth-link">
+          Não tem conta? <a href="/usuario/cadastro">Cadastre-se</a>
+        </p>
+      </div>
+    </main>
+
+    <script src="/_shared/js/utils.js"></script>
+    <script src="/Usuario/js/login.js" type="module"></script>
+  </body>
+</html>

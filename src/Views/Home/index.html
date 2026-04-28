@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog de Notícias - Home</title>
+    <link rel="stylesheet" href="../_shared/css/base.css" />
+    <link rel="stylesheet" href="../_shared/css/components.css" />
+    <style>
+      .hero {
+        background: linear-gradient(
+          135deg,
+          var(--cor-primaria) 0%,
+          var(--cor-primaria-escura) 100%
+        );
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: var(--raio);
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .filtros {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+        justify-content: center;
+      }
+
+      .filtro-btn {
+        padding: 0.5rem 1.25rem;
+        border: 2px solid var(--cor-borda);
+        border-radius: 999px;
+        background: var(--cor-branco);
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .filtro-btn.ativo,
+      .filtro-btn:hover {
+        background: var(--cor-primaria);
+        color: white;
+        border-color: var(--cor-primaria);
+      }
+
+      .loading {
+        text-align: center;
+        padding: 3rem;
+      }
+
+      .spinner {
+        border: 3px solid var(--cor-borda);
+        border-top: 3px solid var(--cor-primaria);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-container"></div>
+
+    <main class="container">
+      <div class="hero">
+        <h1>📰 Blog de Notícias</h1>
+        <p>As últimas notícias do mundo em um só lugar</p>
+      </div>
+
+      <div class="filtros" id="filtros-categoria">
+        <button class="filtro-btn ativo" data-categoria="">📰 Todas</button>
+      </div>
+
+      <div class="loading" id="loading" style="display: none">
+        <div class="spinner"></div>
+        <p>Carregando notícias...</p>
+      </div>
+
+      <div class="home-grid" id="grid-noticias"></div>
+
+      <div class="sem-resultados" id="sem-resultados" style="display: none">
+        Nenhuma notícia encontrada.
+      </div>
+
+      <div class="paginacao" id="paginacao"></div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="/_shared/js/utils.js"></script>
+    <script src="/Home/js/home.js"></script>
+  </body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nova Postagem - Blog de Notícias</title>
+    <link rel="stylesheet" href="../_shared/css/base.css" />
+    <link rel="stylesheet" href="../_shared/css/components.css" />
+    <style>
+      .editor-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .editor-card {
+        background: var(--cor-branco);
+        border-radius: var(--raio);
+        padding: 2rem;
+        box-shadow: var(--sombra);
+      }
+
+      .categorias-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem;
+        border: 1px solid var(--cor-borda);
+        border-radius: var(--raio);
+        background: var(--cor-fundo);
+      }
+
+      .categoria-check {
+        display: none;
+      }
+
+      .categoria-label {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--cor-borda);
+        border-radius: 999px;
+        background: var(--cor-branco);
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .categoria-check:checked + .categoria-label {
+        background: var(--cor-primaria);
+        color: white;
+        border-color: var(--cor-primaria);
+      }
+
+      .editor-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        justify-content: flex-end;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #fef3c7;
+        color: #92400e;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-container"></div>
+
+    <main class="editor-container">
+      <div class="editor-card">
+        <div class="form-header">
+          <h1>Nova Postagem</h1>
+          <span class="status-badge" id="status-badge">Rascunho</span>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <form id="form-postagem">
+          <div class="campo">
+            <label for="titulo">Título *</label>
+            <input type="text" id="titulo" required />
+          </div>
+
+          <div class="campo">
+            <label for="subtitulo">Subtítulo</label>
+            <input type="text" id="subtitulo" />
+          </div>
+
+          <div class="campo">
+            <label>Categorias *</label>
+            <div class="categorias-grid" id="categorias-grid"></div>
+          </div>
+
+          <div class="campo">
+            <label for="resumo">Resumo</label>
+            <textarea id="resumo" rows="3"></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="conteudo">Conteúdo *</label>
+            <textarea id="conteudo" rows="15" required></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="imagem-url">URL da imagem de destaque</label>
+            <input type="url" id="imagem-url" />
+          </div>
+
+          <div class="campo">
+            <label>
+              <input type="checkbox" id="agendar" /> Agendar publicação
+            </label>
+          </div>
+
+          <div id="agendamento-fields" style="display: none">
+            <div class="campo">
+              <label for="data-publicacao">Data</label>
+              <input type="date" id="data-publicacao" />
+            </div>
+            <div class="campo">
+              <label for="hora-publicacao">Hora</label>
+              <input type="time" id="hora-publicacao" />
+            </div>
+          </div>
+
+          <div class="editor-actions">
+            <button type="button" class="btn btn-secundario" id="btn-rascunho">
+              Salvar Rascunho
+            </button>
+            <button type="submit" class="btn btn-primario">Publicar</button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="/_shared/js/utils.js"></script>
+    <script src="/Noticia/js/criar.js" type="module"></script>
+  </body>
+</html>

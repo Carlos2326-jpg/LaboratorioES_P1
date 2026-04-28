@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notícia - Blog de Notícias</title>
+    <link rel="stylesheet" href="../_shared/css/base.css" />
+    <link rel="stylesheet" href="../_shared/css/components.css" />
+    <style>
+      .noticia-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .noticia-card {
+        background: var(--cor-branco);
+        border-radius: var(--raio);
+        overflow: hidden;
+        box-shadow: var(--sombra);
+      }
+
+      .noticia-imagem {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+      }
+
+      .noticia-conteudo {
+        padding: 2rem;
+      }
+
+      .noticia-categoria {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: var(--cor-primaria);
+        color: white;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .noticia-titulo {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+      }
+
+      .noticia-subtitulo {
+        font-size: 1.2rem;
+        color: var(--cor-texto-suave);
+        margin-bottom: 1rem;
+      }
+
+      .noticia-meta {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-top: 1px solid var(--cor-borda);
+        border-bottom: 1px solid var(--cor-borda);
+        margin-bottom: 2rem;
+        color: var(--cor-texto-suave);
+        font-size: 0.875rem;
+      }
+
+      .noticia-body {
+        font-size: 1.1rem;
+        line-height: 1.8;
+      }
+
+      .noticia-body p {
+        margin-bottom: 1.5rem;
+      }
+
+      .noticia-body img {
+        max-width: 100%;
+        height: auto;
+        margin: 1.5rem 0;
+        border-radius: var(--raio);
+      }
+
+      .loading {
+        text-align: center;
+        padding: 3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-container"></div>
+
+    <main class="noticia-container">
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Carregando notícia...</p>
+      </div>
+
+      <article
+        class="noticia-card"
+        id="noticia-conteudo"
+        style="display: none"
+      ></article>
+
+      <div
+        class="erro"
+        id="erro-mensagem"
+        style="display: none; text-align: center; padding: 3rem"
+      >
+        <p style="color: var(--cor-erro)">
+          ❌ Erro ao carregar notícia. Verifique se a URL está correta.
+        </p>
+        <a href="/" class="btn btn-primario">Voltar para Home</a>
+      </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="/_shared/js/utils.js"></script>
+    <script src="/Noticia/js/noticia.js" type="module"></script>
+  </body>
+</html>

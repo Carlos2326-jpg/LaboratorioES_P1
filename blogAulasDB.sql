@@ -1,88 +1,86 @@
-<<<<<<< HEAD
-CREATE DATABASE BlogNoticias;
-
-USE BlogNoticias;
-=======
--- DROP DATABASE IF EXISTS BlogNoticias;
-CREATE DATABASE BlogNoticias;
->>>>>>> feat/models
+-- Criar banco de dados
+CREATE DATABASE IF NOT EXISTS BlogNoticias;
 
 USE BlogNoticias;
 
--- Tabela Usuario (corrigida)
-CREATE TABLE Usuario (
+-- Tabela de Usuários
+CREATE TABLE IF NOT EXISTS Usuario (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
-    nomeCompleto VARCHAR(45) NOT NULL,
-    email VARCHAR(45) NOT NULL UNIQUE,
-<<<<<<< HEAD
-    senha VARCHAR(60) NOT NULL,
-    nivelAcesso ENUM ('admin', 'editor', 'Leitor', 'Autor')
-=======
-    senha VARCHAR(255) NOT NULL, -- Aumentado para hash seguro (bcrypt/argon2)
-    nivelAcesso ENUM ('admin', 'editor', 'leitor', 'autor') DEFAULT 'leitor',
-    dataCadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ultimoAcesso DATETIME,
-    avatar VARCHAR(255),
-    bio TEXT,
-    ativo BOOLEAN DEFAULT TRUE,
-    INDEX idx_email (email),
-    INDEX idx_nivel_ativo (nivelAcesso, ativo)
->>>>>>> feat/models
+    nomeCompleto VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    nivelAcesso ENUM ('admin', 'editor', 'autor', 'leitor') DEFAULT 'leitor',
+    status ENUM ('ativo', 'inativo', 'bloqueado') DEFAULT 'ativo',
+    resetPasswordToken VARCHAR(255),
+    resetPasswordExpires DATETIME,
+    dataCadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ultimoAcesso TIMESTAMP NULL,
+    INDEX idx_email (email)
 );
 
--- Tabela Categorias (mantida)
-CREATE TABLE Categorias (
+-- Tabela de Categorias
+CREATE TABLE IF NOT EXISTS Categorias (
     idCategoria INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(45) NOT NULL,
-    slug VARCHAR(45) NOT NULL UNIQUE,
-    Descricao VARCHAR(45),
-    imagem BLOB,
-    status ENUM ('ativo', 'inativo') DEFAULT 'ativo'
+    nome VARCHAR(50) NOT NULL,
+    slug VARCHAR(50) UNIQUE NOT NULL,
+    Descricao TEXT,
+    imagemURL VARCHAR(255),
+    status ENUM ('ativo', 'inativo') DEFAULT 'ativo',
+    INDEX idx_slug (slug)
 );
 
--- Tabela Postagem (melhorada)
-CREATE TABLE Postagem (
+-- Tabela de Postagens
+CREATE TABLE IF NOT EXISTS Postagem (
     idPostagem INT PRIMARY KEY AUTO_INCREMENT,
     titulo VARCHAR(200) NOT NULL,
     subTitulo VARCHAR(200),
-    slug VARCHAR(100) NOT NULL UNIQUE,
+    slug VARCHAR(200) UNIQUE NOT NULL,
     resumo TEXT,
     conteudo LONGTEXT NOT NULL,
     imagem_destaque VARCHAR(255),
-    imagem_alt VARCHAR(100),
-    dataPostagem DATETIME DEFAULT CURRENT_TIMESTAMP,
-<<<<<<< HEAD
-    Usuario_idUsuario INT NOT NULL,
-    FOREIGN KEY (Usuario_idUsuario) REFERENCES Usuario (idUsuario) ON DELETE CASCADE
-);
-=======
-    dataAtualizacao DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    imagem_alt VARCHAR(200),
+    dataPostagem DATETIME NOT NULL,
+    dataAtualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     destaque BOOLEAN DEFAULT FALSE,
+    status ENUM ('rascunho', 'publicado', 'agendado') DEFAULT 'rascunho',
+    visualizacoes INT DEFAULT 0,
     usuario_idUsuario INT NOT NULL,
+    FOREIGN KEY (usuario_idUsuario) REFERENCES Usuario (idUsuario) ON DELETE CASCADE,
     INDEX idx_slug (slug),
-    INDEX idx_dataPostagem (dataPostagem),
-    INDEX idx_usuario (usuario_idUsuario),
-    FOREIGN KEY (usuario_idUsuario) REFERENCES Usuario (idUsuario) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
->>>>>>> feat/models
-
--- Tabela N:N — Categorias e Postagem
-CREATE TABLE Categorias_has_Postagem (
-    Categorias_idCategoria INT NOT NULL,
-    Postagem_idPostagem INT NOT NULL,
-    PRIMARY KEY (Categorias_idCategoria, Postagem_idPostagem),
-    FOREIGN KEY (Categorias_idCategoria) REFERENCES Categorias (idCategoria) ON DELETE CASCADE,
-    FOREIGN KEY (Postagem_idPostagem) REFERENCES Postagem (idPostagem) ON DELETE CASCADE
-<<<<<<< HEAD
+    INDEX idx_status_data (status, dataPostagem)
 );
 
--- Tabela N:N — Usuario e Postagem
-CREATE TABLE Usuario_has_Postagem (
-    Usuario_idUsuario INT NOT NULL,
-    Postagem_idPostagem INT NOT NULL,
-    PRIMARY KEY (Usuario_idUsuario, Postagem_idPostagem),
-    FOREIGN KEY (Usuario_idUsuario) REFERENCES Usuario (idUsuario) ON DELETE CASCADE,
-    FOREIGN KEY (Postagem_idPostagem) REFERENCES Postagem (idPostagem) ON DELETE CASCADE
-=======
->>>>>>> feat/models
+-- Tabela de Relacionamento Postagem-Categoria
+CREATE TABLE IF NOT EXISTS Postagem_Categoria (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    postagem_id INT NOT NULL,
+    categoria_id INT NOT NULL,
+    FOREIGN KEY (postagem_id) REFERENCES Postagem (idPostagem) ON DELETE CASCADE,
+    FOREIGN KEY (categoria_id) REFERENCES Categorias (idCategoria) ON DELETE CASCADE,
+    UNIQUE KEY unique_postagem_categoria (postagem_id, categoria_id)
 );
+
+-- Inserir dados iniciais
+INSERT INTO
+    Usuario (nomeCompleto, email, senha, nivelAcesso, status)
+VALUES
+    (
+        'Administrador',
+        'admin@blog.com',
+        '$2a$10$N9qo8uLOickgx2ZMRZoMy.MrCqXrXqXrXqXrXqXrXqXrXqXrXqX',
+        'admin',
+        'ativo'
+    );
+
+INSERT INTO
+    Categorias (nome, slug, descricao)
+VALUES
+    ('Política', 'politica', 'Notícias sobre política'),
+    ('Esportes', 'esportes', 'Cobertura esportiva'),
+    (
+        'Tecnologia',
+        'tecnologia',
+        'Inovação e tecnologia'
+    ),
+    ('Saúde', 'saude', 'Saúde e bem-estar'),
+    ('Economia', 'economia', 'Economia e negócios');
