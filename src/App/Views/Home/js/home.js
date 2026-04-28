@@ -69,6 +69,24 @@ function renderizarPaginacao(total) {
     }
 }
 
+const usuarioLogado = JSON.parse(localStorage.getItem('usuario'));
+
+if (usuarioLogado) {
+    // Troca botões de Entrar/Cadastrar pelo nome do usuário
+    document.querySelector('.navbar__acoes').innerHTML = `
+        ${usuarioLogado.nivelAcesso === 'admin' ? 
+            `<a href="../Categorias/index.html" class="btn btn-secundario btn-sm">⚙️ Categorias</a>` 
+            : ''}
+        <a href="../Usuario/minhasPostagens.html" class="btn btn-secundario btn-sm">Minhas Postagens</a>
+        <button class="btn btn-secundario btn-sm" id="btn-logout">Sair</button>
+    `;
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        localStorage.removeItem('usuario');
+        window.location.reload();
+    });
+}
+
 function renderizar() {
     const filtradas = filtrarNoticias();
     const grid = document.getElementById('grid-noticias');

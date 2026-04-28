@@ -1,157 +1,301 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nova Postagem – Blog de Notícias</title>
-    <link rel="stylesheet" href="../_shared/css/base.css">
-    <link rel="stylesheet" href="../_shared/css/components.css">
+    <link rel="stylesheet" href="../_shared/css/base.css" />
+    <link rel="stylesheet" href="../_shared/css/components.css" />
     <style>
-        .editor-page {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
+      .editor-page {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
 
-        .editor-card {
-            background: var(--cor-branco);
-            border-radius: var(--raio);
-            padding: 2rem;
-            box-shadow: var(--sombra);
-        }
+      .editor-card {
+        background: var(--cor-branco);
+        border-radius: var(--raio);
+        padding: 2rem;
+        box-shadow: var(--sombra);
+      }
 
-        .editor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--cor-borda);
-        }
+      .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--cor-borda);
+      }
 
-        .editor-acoes {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--cor-borda);
-        }
+      .editor-acoes {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--cor-borda);
+        flex-wrap: wrap;
+      }
 
-        .campo textarea {
-            min-height: 200px;
-        }
+      .campo textarea {
+        min-height: 200px;
+      }
 
-        .agendamento-fields {
-            display: none;
-            gap: 1rem;
-        }
+      .agendamento-fields {
+        display: none;
+        gap: 1rem;
+      }
 
-        .agendamento-fields.visivel {
-            display: flex;
-        }
+      .agendamento-fields.visivel {
+        display: flex;
+      }
 
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: #fef3c7;
-            color: #92400e;
-        }
+      .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      /* Multi-categorias */
+      .categorias-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border: 1px solid var(--cor-borda);
+        border-radius: var(--raio);
+        background: var(--cor-fundo);
+      }
+
+      .categoria-check {
+        display: none;
+      }
+
+      .categoria-label {
+        display: inline-block;
+        padding: 0.35rem 0.875rem;
+        border-radius: 999px;
+        border: 1px solid var(--cor-borda);
+        background: var(--cor-branco);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        user-select: none;
+      }
+
+      .categoria-check:checked + .categoria-label {
+        background: var(--cor-primaria);
+        color: var(--cor-branco);
+        border-color: var(--cor-primaria);
+      }
+
+      .categoria-label:hover {
+        border-color: var(--cor-primaria);
+        color: var(--cor-primaria);
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <nav class="navbar">
-        <div class="navbar__inner">
-            <a href="../Home/index.html" class="navbar__logo">📰 Blog de Notícias</a>
-            <div class="navbar__acoes">
-                <a href="../Home/index.html" class="btn btn-secundario btn-sm">← Voltar</a>
-            </div>
+      <div class="navbar__inner">
+        <a href="../Home/index.html" class="navbar__logo"
+          >📰 Blog de Notícias</a
+        >
+        <div class="navbar__acoes">
+          <a
+            href="../Usuario/minhasPostagens.html"
+            class="btn btn-secundario btn-sm"
+            >← Minhas Postagens</a
+          >
         </div>
+      </div>
     </nav>
 
     <div class="editor-page">
-        <div class="editor-card">
-            <div class="editor-header">
-                <h1 style="font-size:1.25rem;">Nova Postagem</h1>
-                <span class="status-badge" id="status-badge">Rascunho</span>
-            </div>
-
-            <div class="alerta alerta-erro" id="alerta-erro" style="display:none;"></div>
-            <div class="alerta alerta-sucesso" id="alerta-sucesso" style="display:none;"></div>
-
-            <form id="form-postagem" novalidate>
-                <div class="campo">
-                    <label for="titulo">Título <span style="color:var(--cor-erro)">*</span></label>
-                    <input type="text" id="titulo" name="titulo" placeholder="Título da notícia" required>
-                    <span class="erro" id="erro-titulo"></span>
-                </div>
-
-                <div class="campo">
-                    <label for="subtitulo">Subtítulo</label>
-                    <input type="text" id="subtitulo" name="subtitulo" placeholder="Linha fina (opcional)">
-                </div>
-
-                <div class="campo">
-                    <label for="categoria">Categoria <span style="color:var(--cor-erro)">*</span></label>
-                    <select id="categoria" name="categoria" required>
-                        <option value="">Selecione uma categoria</option>
-                        <option value="Política">Política</option>
-                        <option value="Esportes">Esportes</option>
-                        <option value="Tecnologia">Tecnologia</option>
-                        <option value="Saúde">Saúde</option>
-                    </select>
-                    <span class="erro" id="erro-categoria"></span>
-                </div>
-
-                <div class="campo">
-                    <label for="resumo">Resumo</label>
-                    <textarea id="resumo" name="resumo" placeholder="Breve resumo da notícia (aparece na listagem)" style="min-height:80px;"></textarea>
-                </div>
-
-                <div class="campo">
-                    <label for="conteudo">Conteúdo <span style="color:var(--cor-erro)">*</span></label>
-                    <textarea id="conteudo" name="conteudo" placeholder="Escreva o conteúdo completo da notícia aqui..." required></textarea>
-                    <span class="erro" id="erro-conteudo"></span>
-                </div>
-
-                <div class="campo">
-                    <label for="imagem-url">URL da imagem de destaque</label>
-                    <input type="url" id="imagem-url" name="imagemURL" placeholder="https://exemplo.com/imagem.jpg">
-                </div>
-
-                <div class="campo">
-                    <label>
-                        <input type="checkbox" id="check-agendamento"> Agendar publicação
-                    </label>
-                </div>
-
-                <div class="agendamento-fields" id="agendamento-fields">
-                    <div class="campo" style="flex:1;margin-bottom:0;">
-                        <label for="data-publicacao">Data</label>
-                        <input type="date" id="data-publicacao" name="dataPublicacao">
-                        <span class="erro" id="erro-data"></span>
-                    </div>
-                    <div class="campo" style="flex:1;margin-bottom:0;">
-                        <label for="hora-publicacao">Hora</label>
-                        <input type="time" id="hora-publicacao" name="horaPublicacao">
-                    </div>
-                </div>
-
-                <div class="editor-acoes">
-                    <button type="button" class="btn btn-secundario" id="btn-rascunho">Salvar Rascunho</button>
-                    <button type="submit" class="btn btn-primario" style="width:auto;" id="btn-publicar">Publicar</button>
-                </div>
-            </form>
+      <div class="editor-card">
+        <div class="editor-header">
+          <h1 style="font-size: 1.25rem" id="editor-titulo">Nova Postagem</h1>
+          <span class="status-badge" id="status-badge">Rascunho</span>
         </div>
+
+        <div
+          class="alerta alerta-erro"
+          id="alerta-erro"
+          style="display: none"
+        ></div>
+        <div
+          class="alerta alerta-sucesso"
+          id="alerta-sucesso"
+          style="display: none"
+        ></div>
+
+        <form id="form-postagem" novalidate>
+          <div class="campo">
+            <label for="titulo"
+              >Título <span style="color: var(--cor-erro)">*</span></label
+            >
+            <input
+              type="text"
+              id="titulo"
+              name="titulo"
+              placeholder="Título da notícia"
+              required
+            />
+            <span class="erro" id="erro-titulo"></span>
+          </div>
+
+          <div class="campo">
+            <label for="subtitulo">Subtítulo</label>
+            <input
+              type="text"
+              id="subtitulo"
+              name="subtitulo"
+              placeholder="Linha fina (opcional)"
+            />
+          </div>
+
+          <!-- Multi-categorias -->
+          <div class="campo">
+            <label
+              >Categorias <span style="color: var(--cor-erro)">*</span></label
+            >
+            <div class="categorias-grid" id="categorias-grid">
+              <input
+                type="checkbox"
+                class="categoria-check"
+                id="cat-politica"
+                value="Política"
+              />
+              <label class="categoria-label" for="cat-politica">Política</label>
+
+              <input
+                type="checkbox"
+                class="categoria-check"
+                id="cat-esportes"
+                value="Esportes"
+              />
+              <label class="categoria-label" for="cat-esportes">Esportes</label>
+
+              <input
+                type="checkbox"
+                class="categoria-check"
+                id="cat-tecnologia"
+                value="Tecnologia"
+              />
+              <label class="categoria-label" for="cat-tecnologia"
+                >Tecnologia</label
+              >
+
+              <input
+                type="checkbox"
+                class="categoria-check"
+                id="cat-saude"
+                value="Saúde"
+              />
+              <label class="categoria-label" for="cat-saude">Saúde</label>
+
+              <input
+                type="checkbox"
+                class="categoria-check"
+                id="cat-economia"
+                value="Economia"
+              />
+              <label class="categoria-label" for="cat-economia">Economia</label>
+
+              <input
+                type="checkbox"
+                class="categoria-check"
+                id="cat-cultura"
+                value="Cultura"
+              />
+              <label class="categoria-label" for="cat-cultura">Cultura</label>
+            </div>
+            <span class="erro" id="erro-categorias"></span>
+          </div>
+
+          <div class="campo">
+            <label for="resumo">Resumo</label>
+            <textarea
+              id="resumo"
+              name="resumo"
+              placeholder="Breve resumo da notícia (aparece na listagem)"
+              style="min-height: 80px"
+            ></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="conteudo"
+              >Conteúdo <span style="color: var(--cor-erro)">*</span></label
+            >
+            <textarea
+              id="conteudo"
+              name="conteudo"
+              placeholder="Escreva o conteúdo completo da notícia aqui..."
+              required
+            ></textarea>
+            <span class="erro" id="erro-conteudo"></span>
+          </div>
+
+          <div class="campo">
+            <label for="imagem-url">URL da imagem de destaque</label>
+            <input
+              type="url"
+              id="imagem-url"
+              name="imagemURL"
+              placeholder="https://exemplo.com/imagem.jpg"
+            />
+          </div>
+
+          <div class="campo">
+            <label>
+              <input type="checkbox" id="check-agendamento" /> Agendar
+              publicação
+            </label>
+          </div>
+
+          <div class="agendamento-fields" id="agendamento-fields">
+            <div class="campo" style="flex: 1; margin-bottom: 0">
+              <label for="data-publicacao">Data</label>
+              <input type="date" id="data-publicacao" name="dataPublicacao" />
+              <span class="erro" id="erro-data"></span>
+            </div>
+            <div class="campo" style="flex: 1; margin-bottom: 0">
+              <label for="hora-publicacao">Hora</label>
+              <input type="time" id="hora-publicacao" name="horaPublicacao" />
+            </div>
+          </div>
+
+          <div class="editor-acoes">
+            <button
+              type="button"
+              class="btn btn-secundario"
+              id="btn-rascunho"
+              style="width: auto"
+            >
+              Salvar Rascunho
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primario"
+              style="width: auto"
+              id="btn-publicar"
+            >
+              Publicar
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <footer class="footer">
-        © 2026 Blog de Notícias. Todos os direitos reservados.
+      © 2026 Blog de Notícias. Todos os direitos reservados.
     </footer>
 
     <script src="js/criar.js" type="module"></script>
-</body>
+  </body>
 </html>

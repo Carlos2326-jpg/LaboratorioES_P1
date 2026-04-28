@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciar Categorias – Blog de Notícias</title>
+    <link rel="stylesheet" href="../_shared/css/base.css" />
+    <link rel="stylesheet" href="../_shared/css/components.css" />
+    <style>
+      .admin-page {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      /* Formulário de nova categoria */
+      .form-card {
+        background: var(--cor-branco);
+        border-radius: var(--raio);
+        padding: 1.5rem;
+        box-shadow: var(--sombra);
+        margin-bottom: 1.5rem;
+      }
+
+      .form-card h2 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--cor-primaria);
+      }
+
+      .form-inline {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+        flex-wrap: wrap;
+      }
+
+      .form-inline .campo {
+        flex: 1;
+        min-width: 160px;
+        margin-bottom: 0;
+      }
+
+      /* Tabela de categorias */
+      .categorias-card {
+        background: var(--cor-branco);
+        border-radius: var(--raio);
+        box-shadow: var(--sombra);
+        overflow: hidden;
+      }
+
+      .categorias-card table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .categorias-card th {
+        background: var(--cor-fundo);
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--cor-texto-suave);
+        border-bottom: 1px solid var(--cor-borda);
+      }
+
+      .categorias-card td {
+        padding: 0.875rem 1rem;
+        border-bottom: 1px solid var(--cor-borda);
+        font-size: 0.9rem;
+        vertical-align: middle;
+      }
+
+      .categorias-card tr:last-child td {
+        border-bottom: none;
+      }
+
+      .categorias-card tr:hover td {
+        background: #f9fafb;
+      }
+
+      .status-ativo {
+        color: var(--cor-sucesso);
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+      .status-inativo {
+        color: var(--cor-texto-suave);
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+
+      .acoes-tabela {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      /* Modal de edição */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.aberto {
+        display: flex;
+      }
+
+      .modal {
+        background: var(--cor-branco);
+        border-radius: var(--raio);
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+      }
+
+      .modal-header h2 {
+        font-size: 1rem;
+      }
+
+      .modal-fechar {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        color: var(--cor-texto-suave);
+        line-height: 1;
+      }
+
+      .sem-categorias {
+        text-align: center;
+        padding: 2.5rem;
+        color: var(--cor-texto-suave);
+      }
+
+      /* Ocultar ações se não for admin */
+      .somente-admin {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar__inner">
+        <a href="../Home/index.html" class="navbar__logo"
+          >📰 Blog de Notícias</a
+        >
+        <div class="navbar__acoes">
+          <a href="../Usuario/gerenciar.html" class="btn btn-secundario btn-sm"
+            >👥 Usuários</a
+          >
+          <a
+            href="../Usuario/minhasPostagens.html"
+            class="btn btn-secundario btn-sm"
+            >← Minhas Postagens</a
+          >
+          <button class="btn btn-secundario btn-sm" id="btn-logout">
+            Sair
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="admin-page">
+      <div class="admin-header">
+        <h1 style="font-size: 1.5rem">Gerenciar Categorias</h1>
+        <span id="nivel-badge" class="badge"></span>
+      </div>
+
+      <div
+        class="alerta alerta-erro"
+        id="alerta-erro"
+        style="display: none"
+      ></div>
+      <div
+        class="alerta alerta-sucesso"
+        id="alerta-sucesso"
+        style="display: none"
+      ></div>
+
+      <!-- Formulário nova categoria — visível só pra admin -->
+      <div class="form-card somente-admin" id="form-nova">
+        <h2>Nova Categoria</h2>
+        <div class="form-inline">
+          <div class="campo">
+            <label for="nome-categoria">Nome</label>
+            <input type="text" id="nome-categoria" placeholder="Ex: Economia" />
+            <span class="erro" id="erro-nome"></span>
+          </div>
+          <div class="campo">
+            <label for="slug-categoria">Slug</label>
+            <input type="text" id="slug-categoria" placeholder="ex: economia" />
+            <span class="erro" id="erro-slug"></span>
+          </div>
+          <div class="campo">
+            <label for="desc-categoria">Descrição</label>
+            <input type="text" id="desc-categoria" placeholder="Opcional" />
+          </div>
+          <button
+            class="btn btn-primario btn-sm"
+            id="btn-criar"
+            style="width: auto; padding: 0.625rem 1.25rem; margin-bottom: 1rem"
+          >
+            + Adicionar
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="categorias-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Slug</th>
+              <th>Descrição</th>
+              <th>Status</th>
+              <th class="somente-admin">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-categorias">
+            <tr>
+              <td colspan="5">
+                <div class="sem-categorias">Carregando...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal de edição -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Editar Categoria</h2>
+          <button class="modal-fechar" id="modal-fechar">✕</button>
+        </div>
+        <div class="campo">
+          <label for="edit-nome">Nome</label>
+          <input type="text" id="edit-nome" />
+          <span class="erro" id="edit-erro-nome"></span>
+        </div>
+        <div class="campo">
+          <label for="edit-slug">Slug</label>
+          <input type="text" id="edit-slug" />
+        </div>
+        <div class="campo">
+          <label for="edit-desc">Descrição</label>
+          <input type="text" id="edit-desc" />
+        </div>
+        <div class="campo">
+          <label for="edit-status">Status</label>
+          <select id="edit-status">
+            <option value="ativo">Ativo</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 0.75rem; margin-top: 1rem">
+          <button
+            class="btn btn-primario"
+            id="btn-salvar-edicao"
+            style="flex: 1"
+          >
+            Salvar
+          </button>
+          <button class="btn btn-secundario" id="btn-cancelar" style="flex: 1">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      © 2026 Blog de Notícias. Todos os direitos reservados.
+    </footer>
+
+    <script type="module">
+      // ─── Usuário logado ───
+      const usuarioLogado = JSON.parse(localStorage.getItem("usuario")) || {
+        id: 1,
+        nome: "Marcio Souza",
+        nivelAcesso: "admin", // trocar para 'autor' ou 'editor' pra testar restrição
+      };
+
+      const isAdmin = usuarioLogado.nivelAcesso === "admin";
+
+      // Mostra elementos só-admin se for admin
+      if (isAdmin) {
+        document.querySelectorAll(".somente-admin").forEach((el) => {
+          el.style.setProperty("display", "block", "important");
+        });
+      }
+
+      // Badge de nível
+      const badge = document.getElementById("nivel-badge");
+      badge.textContent = usuarioLogado.nivelAcesso;
+
+      // ─── Mock de categorias ───
+      // Substituir por: const res = await fetch('/api/categorias'); categorias = await res.json()
+      let categorias = [
+        {
+          id: 1,
+          nome: "Política",
+          slug: "politica",
+          descricao: "Notícias políticas",
+          status: "ativo",
+        },
+        {
+          id: 2,
+          nome: "Esportes",
+          slug: "esportes",
+          descricao: "Esporte em geral",
+          status: "ativo",
+        },
+        {
+          id: 3,
+          nome: "Tecnologia",
+          slug: "tecnologia",
+          descricao: "Tech e inovação",
+          status: "ativo",
+        },
+        {
+          id: 4,
+          nome: "Saúde",
+          slug: "saude",
+          descricao: "Saúde e bem-estar",
+          status: "ativo",
+        },
+        {
+          id: 5,
+          nome: "Economia",
+          slug: "economia",
+          descricao: "",
+          status: "inativo",
+        },
+      ];
+
+      let proximoId = 6;
+      let categoriaEmEdicao = null;
+
+      // ─── Renderizar tabela ───
+      function renderizar() {
+        const tbody = document.getElementById("tabela-categorias");
+
+        if (categorias.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5"><div class="sem-categorias">Nenhuma categoria cadastrada.</div></td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = categorias
+          .map(
+            (cat) => `
+        <tr>
+            <td><strong>${cat.nome}</strong></td>
+            <td><code style="font-size:0.8rem;color:var(--cor-texto-suave);">${cat.slug}</code></td>
+            <td style="color:var(--cor-texto-suave);font-size:0.85rem;">${cat.descricao || "—"}</td>
+            <td>
+                <span class="status-${cat.status}">
+                    ${cat.status === "ativo" ? "● Ativo" : "○ Inativo"}
+                </span>
+            </td>
+            ${
+              isAdmin
+                ? `
+            <td>
+                <div class="acoes-tabela">
+                    <button class="btn btn-secundario btn-sm" onclick="abrirEdicao(${cat.id})">✏️ Editar</button>
+                    <button class="btn btn-perigo btn-sm" onclick="excluir(${cat.id})">🗑️</button>
+                </div>
+            </td>`
+                : "<td></td>"
+            }
+        </tr>
+    `,
+          )
+          .join("");
+      }
+
+      // ─── Gerar slug automático ───
+      document
+        .getElementById("nome-categoria")
+        .addEventListener("input", (e) => {
+          const slug = e.target.value
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "");
+          document.getElementById("slug-categoria").value = slug;
+        });
+
+      // ─── Criar categoria ───
+      document.getElementById("btn-criar").addEventListener("click", () => {
+        const nome = document.getElementById("nome-categoria").value.trim();
+        const slug = document.getElementById("slug-categoria").value.trim();
+        const desc = document.getElementById("desc-categoria").value.trim();
+
+        document.getElementById("erro-nome").textContent = "";
+        document.getElementById("erro-slug").textContent = "";
+
+        if (!nome) {
+          document.getElementById("erro-nome").textContent = "Informe o nome.";
+          return;
+        }
+        if (!slug) {
+          document.getElementById("erro-slug").textContent = "Informe o slug.";
+          return;
+        }
+        if (categorias.some((c) => c.slug === slug)) {
+          document.getElementById("erro-slug").textContent = "Slug já existe.";
+          return;
+        }
+
+        // Substituir por: await fetch('/api/categorias', { method: 'POST', body: JSON.stringify({nome, slug, descricao: desc}) })
+        categorias.push({
+          id: proximoId++,
+          nome,
+          slug,
+          descricao: desc,
+          status: "ativo",
+        });
+
+        document.getElementById("nome-categoria").value = "";
+        document.getElementById("slug-categoria").value = "";
+        document.getElementById("desc-categoria").value = "";
+
+        exibirSucesso(`Categoria "${nome}" criada!`);
+        renderizar();
+      });
+
+      // ─── Editar ───
+      window.abrirEdicao = function (id) {
+        categoriaEmEdicao = categorias.find((c) => c.id === id);
+        if (!categoriaEmEdicao) return;
+
+        document.getElementById("edit-nome").value = categoriaEmEdicao.nome;
+        document.getElementById("edit-slug").value = categoriaEmEdicao.slug;
+        document.getElementById("edit-desc").value =
+          categoriaEmEdicao.descricao || "";
+        document.getElementById("edit-status").value = categoriaEmEdicao.status;
+        document.getElementById("edit-erro-nome").textContent = "";
+
+        document.getElementById("modal-overlay").classList.add("aberto");
+      };
+
+      document
+        .getElementById("btn-salvar-edicao")
+        .addEventListener("click", () => {
+          const nome = document.getElementById("edit-nome").value.trim();
+          if (!nome) {
+            document.getElementById("edit-erro-nome").textContent =
+              "Informe o nome.";
+            return;
+          }
+
+          // Substituir por: await fetch(`/api/categorias/${categoriaEmEdicao.id}`, { method: 'PUT', body: ... })
+          categoriaEmEdicao.nome = nome;
+          categoriaEmEdicao.slug = document
+            .getElementById("edit-slug")
+            .value.trim();
+          categoriaEmEdicao.descricao = document
+            .getElementById("edit-desc")
+            .value.trim();
+          categoriaEmEdicao.status =
+            document.getElementById("edit-status").value;
+
+          fecharModal();
+          exibirSucesso(`Categoria "${nome}" atualizada!`);
+          renderizar();
+        });
+
+      // ─── Excluir ───
+      window.excluir = function (id) {
+        const cat = categorias.find((c) => c.id === id);
+        if (!confirm(`Excluir a categoria "${cat.nome}"?`)) return;
+
+        // Substituir por: await fetch(`/api/categorias/${id}`, { method: 'DELETE' })
+        categorias = categorias.filter((c) => c.id !== id);
+        exibirSucesso(`Categoria "${cat.nome}" removida.`);
+        renderizar();
+      };
+
+      // ─── Modal ───
+      function fecharModal() {
+        document.getElementById("modal-overlay").classList.remove("aberto");
+        categoriaEmEdicao = null;
+      }
+
+      document
+        .getElementById("modal-fechar")
+        .addEventListener("click", fecharModal);
+      document
+        .getElementById("btn-cancelar")
+        .addEventListener("click", fecharModal);
+      document
+        .getElementById("modal-overlay")
+        .addEventListener("click", (e) => {
+          if (e.target === document.getElementById("modal-overlay"))
+            fecharModal();
+        });
+
+      // ─── Logout ───
+      document.getElementById("btn-logout").addEventListener("click", () => {
+        localStorage.removeItem("usuario");
+        window.location.href = "../Usuario/index.html";
+      });
+
+      // ─── Alertas ───
+      function exibirSucesso(msg) {
+        const el = document.getElementById("alerta-sucesso");
+        el.textContent = msg;
+        el.style.display = "block";
+        setTimeout(() => (el.style.display = "none"), 3000);
+      }
+
+      // ─── Init ───
+      renderizar();
+    </script>
+  </body>
+</html>
