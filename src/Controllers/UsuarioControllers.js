@@ -1,4 +1,3 @@
-// src/Controllers/UsuarioControllers.js
 const UsuarioService = require('../Services/UsuarioService');
 
 class UsuarioController {
@@ -48,7 +47,6 @@ class UsuarioController {
         try {
             const { nome, email, confirmarEmail, senha, confirmarSenha } = req.body;
 
-            // Validações básicas
             if (!nome || !email || !senha) {
                 return res.status(400).json({
                     success: false,
@@ -87,7 +85,7 @@ class UsuarioController {
         }
     }
 
-    // 📧 OTP - SOLICITAR (CORRIGIDO)
+    // 📧 OTP - SOLICITAR
     async solicitarOTP(req, res) {
         try {
             const { email } = req.body;
@@ -99,7 +97,6 @@ class UsuarioController {
                 });
             }
 
-            // ✅ USA NOVO MÉTODO DO SERVICE
             await this.usuarioService.solicitarRedefinicao(email);
             
             res.json({
@@ -116,7 +113,7 @@ class UsuarioController {
         }
     }
 
-    // ✅ VERIFICAR OTP (CORRIGIDO)
+    // ✅ VERIFICAR OTP
     async verificarOTP(req, res) {
         try {
             const { email, otp } = req.body;
@@ -128,7 +125,6 @@ class UsuarioController {
                 });
             }
 
-            // ✅ USA NOVO MÉTODO DO SERVICE
             const usuario = await this.usuarioService.verificarOTP(email, otp);
             const token = this.usuarioService.gerarToken(usuario);
 
@@ -165,7 +161,6 @@ class UsuarioController {
                 });
             }
 
-            // ✅ USA NOVO MÉTODO DO SERVICE
             await this.usuarioService.solicitarRedefinicao(email);
             
             res.json({
@@ -178,7 +173,7 @@ class UsuarioController {
         }
     }
 
-    // 🔄 RESET SENHA - VERIFICAR TOKEN (CORRIGIDO)
+    // 🔄 RESET SENHA - VERIFICAR TOKEN
     async verificarResetToken(req, res) {
         try {
             const { email, otp } = req.body;
@@ -190,7 +185,6 @@ class UsuarioController {
                 });
             }
 
-            // ✅ USA NOVO MÉTODO DO SERVICE
             const result = await this.usuarioService.verificarResetToken(email, otp);
             
             res.json({ 
@@ -215,7 +209,6 @@ class UsuarioController {
                 });
             }
 
-            // ✅ USA NOVO MÉTODO DO SERVICE
             await this.usuarioService.redefinirSenha(token, novaSenha);
             
             res.json({ 
@@ -251,31 +244,33 @@ class UsuarioController {
         }
     }
 
-    // 📋 ADMIN - LISTAR USUÁRIOS (ROTA PROTEGIDA)
+    // 📋 ADMIN - LISTAR USUÁRIOS (ROTA PROTEGIDA) ✅ CORRIGIDO
     async listar(req, res) {
         try {
             const { busca, nivelAcesso, status, pagina = 1, limite = 10 } = req.query;
             
             const filtros = {
-                busca: busca || undefined,
+                busca: busca || '',  // ✅ CORRIGIDO: '' ao invés de vírgula solta
                 nivelAcesso: nivelAcesso || undefined,
-                status: status || undefined
+                status: status || undefined,
+                pagina: parseInt(pagina),
+                limite: parseInt(limite)
             };
 
             const usuarios = await this.usuarioService.listarUsuarios(filtros, req.usuario);
             
             res.json({ 
                 success: true, 
-                data: usuarios,
-                pagination: {
-                    pagina: parseInt(pagina),
-                    limite: parseInt(limite),
-                    total: usuarios.length
+                data: usuarios.data || usuarios,
+                pagination: usuarios.pagination || {
+                    pagina: filtros.pagina,
+                    limite: filtros.limite,
+                    total: usuarios.length || 0
                 }
             });
         } catch (error) {
             console.error('❌ Erro ao listar usuários:', error.message);
-            res.status(403).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: error.message });
         }
     }
 

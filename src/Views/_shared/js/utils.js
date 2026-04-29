@@ -95,25 +95,7 @@ function debounce(func, wait) {
     };
 }
 
-// ✅ EXPORTAÇÕES NAMED (para import)
-export {
-    formatarData,
-    formatarDataHora,
-    showAlert,
-    getUsuarioLogado,
-    getToken,
-    setUsuarioLogado,
-    logout,
-    getAuthHeader,
-    validarEmail,
-    validarSenha,
-    validarConfirmacao,
-    gerarSlug,
-    debounce,
-    API_URL
-};
-
-// ✅ GLOBAL (para <script> sem import)
+// ✅ TORNAR TUDO GLOBAL (sem export)
 window.API_URL = API_URL;
 window.formatarData = formatarData;
 window.formatarDataHora = formatarDataHora;

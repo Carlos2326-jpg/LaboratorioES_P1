@@ -22,7 +22,6 @@
         font-size: 1.75rem;
         margin: 0;
       }
-
       .postagens-table {
         background: white;
         border-radius: 8px;
@@ -51,13 +50,11 @@
       tr:hover td {
         background: #f9fafb;
       }
-
       .status-pill {
         padding: 0.25rem 0.75rem;
         border-radius: 999px;
         font-size: 0.75rem;
         font-weight: 600;
-        text-transform: capitalize;
       }
       .status-publicado {
         background: #dcfce7;
@@ -71,7 +68,6 @@
         background: #dbeafe;
         color: #1e40af;
       }
-
       .acoes {
         display: flex;
         gap: 0.5rem;
@@ -92,25 +88,14 @@
         background: #dc2626;
         color: white;
       }
-
       .loading-text {
         text-align: center;
         padding: 3rem;
         color: #6b7280;
       }
-      .vazio {
-        text-align: center;
-        padding: 3rem;
-        color: #6b7280;
-      }
-      .vazio h3 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-      }
-
       .stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1rem;
         margin-bottom: 2rem;
       }
@@ -130,7 +115,6 @@
         color: #6b7280;
         font-size: 0.9rem;
       }
-
       @media (max-width: 768px) {
         .acoes {
           flex-direction: column;
@@ -138,7 +122,6 @@
         .dashboard-header {
           flex-direction: column;
           gap: 1rem;
-          text-align: center;
         }
       }
     </style>
@@ -149,10 +132,10 @@
     <main class="dashboard-container">
       <div class="dashboard-header">
         <h1>📝 Minhas Postagens</h1>
-        <div>
-          <a href="/noticia/criar" class="btn btn-primario">+ Nova Postagem</a>
-        </div>
+        <a href="/noticia/criar" class="btn btn-primario">+ Nova Postagem</a>
       </div>
+
+      <div id="alert-container"></div>
 
       <!-- Stats -->
       <div class="stats" id="stats-container" style="display: none">
@@ -170,7 +153,6 @@
         </div>
       </div>
 
-      <!-- Tabela -->
       <div class="postagens-table">
         <table>
           <thead>
@@ -191,54 +173,41 @@
           </tbody>
         </table>
       </div>
-
-      <!-- Vazio -->
-      <div id="vazio" class="vazio" style="display: none">
-        <h3>📭</h3>
-        <p>
-          Ainda não há postagens. <a href="/noticia/criar">Crie a primeira!</a>
-        </p>
-      </div>
     </main>
 
-    <!-- Scripts -->
     <script src="/_shared/js/utils.js"></script>
     <script>
-      // === VERIFICA AUTENTICAÇÃO ===
       const usuario = getUsuarioLogado();
       if (!usuario) {
         window.location.href = "/usuario/login";
-        throw new Error("Não autenticado");
       }
 
-      // === HEADER ===
       document.getElementById("header-container").innerHTML = `
-            <nav class="navbar">
-                <div class="navbar__inner">
-                    <a href="/home" class="navbar__logo">📰 Blog de Notícias</a>
-                    <div class="navbar__acoes">
-                        <span>Olá, ${usuario.nomeCompleto?.split(" ")[0] || "Usuário"}</span>
-                        <a href="/home" class="btn btn-secundario">🏠 Home</a>
-                        <a href="/noticia/criar" class="btn btn-primario">+ Nova</a>
-                        <button class="btn btn-secundario" onclick="logout()">Sair</button>
-                    </div>
-                </div>
-            </nav>
-        `;
+        <nav class="navbar">
+          <div class="navbar__inner">
+            <a href="/home" class="navbar__logo">📰 Blog de Notícias</a>
+            <div class="navbar__acoes">
+              <span>Olá, ${usuario?.nomeCompleto?.split(" ")[0] || "Usuário"}</span>
+              <a href="/home" class="btn btn-secundario">🏠 Home</a>
+              <a href="/noticia/criar" class="btn btn-primario">+ Nova</a>
+              <button class="btn btn-secundario" onclick="logout()">Sair</button>
+            </div>
+          </div>
+        </nav>`;
 
-      // === CARREGAR POSTAGENS ===
       async function carregarPostagens() {
         try {
           const response = await fetch(`${API_URL}/usuario/minhas-postagens`, {
             headers: getAuthHeader(),
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          if (response.status === 401) {
+            logout();
+            return;
           }
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
           const result = await response.json();
-
           if (result.success && result.data) {
             renderizarPostagens(result.data);
           } else {
@@ -247,104 +216,78 @@
         } catch (error) {
           console.error("Erro:", error);
           document.getElementById("tabela-postagens").innerHTML = `
-                    <tr>
-                        <td colspan="5" class="loading-text" style="color: #dc2626;">
-                            Erro ao carregar: ${error.message}<br>
-                            <button onclick="carregarPostagens()" class="btn-primario" style="margin-top: 1rem;">Tentar novamente</button>
-                        </td>
-                    </tr>
-                `;
+            <tr><td colspan="5" class="loading-text" style="color:#dc2626;">
+              Erro: ${error.message}<br>
+              <button onclick="carregarPostagens()" style="margin-top:1rem;background:#2563eb;color:white;padding:0.5rem 1rem;border:none;border-radius:6px;cursor:pointer;">Tentar novamente</button>
+            </td></tr>`;
         }
       }
 
       function renderizarPostagens(postagens) {
         const tbody = document.getElementById("tabela-postagens");
-        const vazio = document.getElementById("vazio");
         const stats = document.getElementById("stats-container");
 
-        if (postagens.length === 0) {
+        if (!postagens.length) {
           tbody.innerHTML =
-            '<tr><td colspan="5">Nenhuma postagem encontrada</td></tr>';
-          vazio.style.display = "block";
-          stats.style.display = "none";
+            '<tr><td colspan="5" class="loading-text">Você ainda não tem postagens. <a href="/noticia/criar">Crie a primeira!</a></td></tr>';
           return;
         }
 
-        // Stats
-        const total = postagens.length;
-        const publicadas = postagens.filter(
+        document.getElementById("total-postagens").textContent =
+          postagens.length;
+        document.getElementById("publicadas").textContent = postagens.filter(
           (p) => p.status === "publicado",
         ).length;
-        const rascunhos = postagens.filter(
+        document.getElementById("rascunhos").textContent = postagens.filter(
           (p) => p.status === "rascunho",
         ).length;
-
-        document.getElementById("total-postagens").textContent = total;
-        document.getElementById("publicadas").textContent = publicadas;
-        document.getElementById("rascunhos").textContent = rascunhos;
         stats.style.display = "grid";
 
-        // Tabela
         tbody.innerHTML = postagens
           .map(
             (post) => `
-                <tr>
-                    <td>
-                        <strong>
-                            <a href="/noticia/${post.slug}" target="_blank">${post.titulo}</a>
-                        </strong>
-                        ${post.resumo ? `<br><small>${post.resumo.substring(0, 80)}...</small>` : ""}
-                    </td>
-                    <td><span class="status-pill status-${post.status}">${post.status}</span></td>
-                    <td>${formatarData(post.dataPostagem)}</td>
-                    <td>${post.visualizacoes || 0}</td>
-                    <td class="acoes">
-                        <button class="btn-sm btn-editar" onclick="editar(${post.idPostagem})">
-                            ✏️ Editar
-                        </button>
-                        <button class="btn-sm btn-excluir" onclick="excluir(${post.idPostagem})">
-                            🗑️ Excluir
-                        </button>
-                    </td>
-                </tr>
-            `,
+          <tr>
+            <td>
+              <strong><a href="/noticia/${post.slug}" target="_blank">${post.titulo}</a></strong>
+              ${post.resumo ? `<br><small style="color:#6b7280">${post.resumo.substring(0, 80)}...</small>` : ""}
+            </td>
+            <td><span class="status-pill status-${post.status}">${post.status}</span></td>
+            <td>${formatarData(post.dataPostagem)}</td>
+            <td>${post.visualizacoes || 0}</td>
+            <td class="acoes">
+              <button class="btn-sm btn-editar"  onclick="editar(${post.idPostagem})">✏️ Editar</button>
+              <button class="btn-sm btn-excluir" onclick="excluir(${post.idPostagem})">🗑️ Excluir</button>
+            </td>
+          </tr>`,
           )
           .join("");
-
-        vazio.style.display = "none";
       }
 
-      // === AÇÕES ===
-      window.editar = function (id) {
+      // FIX: era /Noticia/editar/ (N maiúsculo) — rota é /noticia/editar/
+      window.editar = (id) => {
         window.location.href = `/noticia/editar/${id}`;
       };
 
-      window.excluir = async function (id) {
+      window.excluir = async (id) => {
         if (!confirm("Tem certeza? Esta ação não pode ser desfeita.")) return;
-
         try {
           const response = await fetch(`${API_URL}/postagens/${id}`, {
             method: "DELETE",
             headers: getAuthHeader(),
           });
-
           const result = await response.json();
-
           if (result.success) {
             showAlert("Postagem excluída!", "success");
-            setTimeout(carregarPostagens, 1500);
+            setTimeout(carregarPostagens, 1000);
           } else {
             showAlert(result.error, "error");
           }
         } catch (error) {
-          console.error("Erro:", error);
           showAlert("Erro ao excluir", "error");
         }
       };
 
-      // === INICIALIZAÇÃO ===
       carregarPostagens();
-      console.log("✅ Minhas postagens carregada!");
     </script>
   </body>
 </html>

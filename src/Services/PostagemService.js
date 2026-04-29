@@ -1,3 +1,4 @@
+// src/Services/PostagemService.js
 const PostagemModel = require('../Models/Postagem');
 const CategoriaModel = require('../Models/Categoria');
 const slugify = require('slugify');
@@ -9,17 +10,63 @@ class PostagemService {
     }
 
     gerarSlug(titulo) {
-        return slugify(titulo, { 
-            lower: true, 
-            strict: true, 
-            locale: 'pt' 
+        return slugify(titulo, {
+            lower: true,
+            strict: true,
+            locale: 'pt'
         });
+    }
+
+    // ─── BUSCAR POR ID (única definição) ───
+    async buscarPorId(id) {
+        const postagem = await this.postagemModel.find(id);
+        if (!postagem) {
+            throw new Error('Postagem não encontrada');
+        }
+
+        // Buscar e anexar categorias como string legível
+        const categorias = await this.buscarCategoriasDaPostagem(id);
+        postagem.categorias_nome = categorias.map(c => c.nome).join(', ');
+
+        return postagem;
+    }
+
+    // ─── BUSCAR POR ID COM ARRAY DE IDs DE CATEGORIAS (para edição) ───
+    async buscarPorIdComCategorias(id) {
+        const postagem = await this.postagemModel.find(id);
+        if (!postagem) {
+            throw new Error('Postagem não encontrada');
+        }
+
+        const categoriasQuery = `
+            SELECT c.idCategoria, c.nome
+            FROM Categorias c
+            INNER JOIN Postagem_Categoria pc ON c.idCategoria = pc.categoria_id
+            WHERE pc.postagem_id = ?
+        `;
+        const categorias = await this.postagemModel.db.query(categoriasQuery, [id]);
+
+        return {
+            ...postagem,
+            categorias: categorias.map(c => c.idCategoria),
+            categorias_nome: categorias.map(c => c.nome).join(', ')
+        };
+    }
+
+    // ─── MÉTODO AUXILIAR: categorias de uma postagem ───
+    async buscarCategoriasDaPostagem(postagemId) {
+        return await this.postagemModel.db.query(`
+            SELECT c.*
+            FROM Categorias c
+            JOIN Postagem_Categoria pc ON c.idCategoria = pc.categoria_id
+            WHERE pc.postagem_id = ?
+        `, [postagemId]);
     }
 
     async listarPublicadas(page = 1, limit = 10) {
         const postagens = await this.postagemModel.findPublicadas(page, limit);
         const total = await this.postagemModel.count("status = 'publicado' AND dataPostagem <= NOW()");
-        
+
         return {
             data: postagens,
             total,
@@ -27,14 +74,6 @@ class PostagemService {
             limit,
             totalPages: Math.ceil(total / limit)
         };
-    }
-
-    async buscarPorId(id) {
-        const postagem = await this.postagemModel.find(id);
-        if (!postagem) {
-            throw new Error('Postagem não encontrada');
-        }
-        return postagem;
     }
 
     async buscarPorSlug(slug) {
@@ -50,12 +89,10 @@ class PostagemService {
     }
 
     async criarPostagem(dadosPostagem, categorias, usuario) {
-        // Verificação de permissão
         if (!['admin', 'editor', 'autor'].includes(usuario.nivelAcesso)) {
             throw new Error('Sem permissão para criar postagens');
         }
 
-        // Validações básicas
         if (!dadosPostagem.titulo || dadosPostagem.titulo.trim().length < 3) {
             throw new Error('Título deve ter pelo menos 3 caracteres');
         }
@@ -64,14 +101,12 @@ class PostagemService {
             throw new Error('Conteúdo deve ter pelo menos 10 caracteres');
         }
 
-        // Gerar slug
         const slug = dadosPostagem.slug || this.gerarSlug(dadosPostagem.titulo);
         const slugExistente = await this.postagemModel.findBySlug(slug);
         if (slugExistente) {
             throw new Error('Slug já existe. Escolha outro título.');
         }
 
-        // Definir status baseado no nível de acesso
         let status = dadosPostagem.status;
         if (usuario.nivelAcesso === 'autor') {
             status = 'rascunho';
@@ -79,13 +114,14 @@ class PostagemService {
             status = 'publicado';
         }
 
-        // Definir datas
-        const dataPostagem = dadosPostagem.dataPostagem ? new Date(dadosPostagem.dataPostagem) : new Date();
+        const dataPostagem = dadosPostagem.dataPostagem
+            ? new Date(dadosPostagem.dataPostagem)
+            : new Date();
 
         const dadosPostagemLimpos = {
             titulo: dadosPostagem.titulo.trim(),
             subTitulo: dadosPostagem.subTitulo?.trim() || null,
-            slug: slug,
+            slug,
             resumo: dadosPostagem.resumo?.trim() || null,
             conteudo: dadosPostagem.conteudo.trim(),
             imagem_destaque: dadosPostagem.imagem_destaque || null,
@@ -96,37 +132,40 @@ class PostagemService {
             usuario_idUsuario: usuario.idUsuario
         };
 
-        // Validar categorias
         if (categorias && categorias.length > 0) {
             const categoriasValidas = await this.categoriaModel.getForPostagemSelect();
             const idsValidos = categoriasValidas.map(c => c.id);
-            const categoriasInvalidas = categorias.filter(id => !idsValidos.includes(id));
-            
+            const categoriasInvalidas = categorias.filter(id => !idsValidos.includes(parseInt(id)));
+
             if (categoriasInvalidas.length > 0) {
                 throw new Error(`Categorias inválidas: ${categoriasInvalidas.join(', ')}`);
             }
         }
 
-        return await this.postagemModel.createWithCategories(dadosPostagemLimpos, categorias || []);
+        return await this.postagemModel.createWithCategories(
+            dadosPostagemLimpos,
+            (categorias || []).map(id => parseInt(id))
+        );
     }
 
     async atualizarPostagem(id, dadosPostagem, categorias, usuario) {
         const postagem = await this.buscarPorId(id);
 
-        // Verificação de permissão
         if (usuario.nivelAcesso !== 'admin' && postagem.usuario_idUsuario !== usuario.idUsuario) {
             throw new Error('Sem permissão para editar esta postagem');
         }
 
-        // Preparar dados para update
         const dadosUpdate = {};
+
         if (dadosPostagem.titulo) {
             dadosUpdate.titulo = dadosPostagem.titulo.trim();
             if (!dadosPostagem.slug) {
                 dadosUpdate.slug = this.gerarSlug(dadosPostagem.titulo);
             }
         }
-        
+        if (dadosPostagem.slug) {
+            dadosUpdate.slug = dadosPostagem.slug.trim();
+        }
         if (dadosPostagem.subTitulo !== undefined) {
             dadosUpdate.subTitulo = dadosPostagem.subTitulo?.trim() || null;
         }
@@ -152,19 +191,24 @@ class PostagemService {
         // Verificar slug único se alterado
         if (dadosUpdate.slug && dadosUpdate.slug !== postagem.slug) {
             const slugExistente = await this.postagemModel.findBySlug(dadosUpdate.slug);
-            if (slugExistente) {
+            if (slugExistente && slugExistente.idPostagem !== id) {
                 throw new Error('Slug já existe');
             }
         }
 
-        const updated = await this.postagemModel.update(id, dadosUpdate);
-        if (!updated) {
-            throw new Error('Erro ao atualizar postagem');
+        if (Object.keys(dadosUpdate).length > 0) {
+            const updated = await this.postagemModel.update(id, dadosUpdate);
+            if (!updated) {
+                throw new Error('Erro ao atualizar postagem');
+            }
         }
 
         // Atualizar categorias se fornecidas
         if (categorias && categorias.length > 0) {
-            await this.postagemModel.updateCategories(id, categorias);
+            await this.postagemModel.updateCategories(
+                id,
+                categorias.map(cid => parseInt(cid))
+            );
         }
 
         return await this.buscarPorId(id);
@@ -193,8 +237,20 @@ class PostagemService {
         if (!termo || termo.trim().length < 2) {
             throw new Error('Termo de busca deve ter pelo menos 2 caracteres');
         }
-        
+
         return await this.postagemModel.search(termo.trim(), categoriaId, page, limit);
+    }
+
+    async incrementarVisualizacoes(idPostagem) {
+        try {
+            await this.postagemModel.db.query(
+                `UPDATE Postagem SET visualizacoes = visualizacoes + 1 WHERE idPostagem = ?`,
+                [idPostagem]
+            );
+        } catch (error) {
+            // Não propaga erro — visualizações são não-críticas
+            console.error('Erro ao incrementar visualizações:', error.message);
+        }
     }
 }
 

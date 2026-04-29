@@ -1,3 +1,4 @@
+// src/Models/Postagem.js
 const BaseModel = require('./BaseModel');
 
 class PostagemModel extends BaseModel {
@@ -7,8 +8,8 @@ class PostagemModel extends BaseModel {
 
     async findBySlug(slug) {
         const query = `
-            SELECT 
-                p.*, 
+            SELECT
+                p.*,
                 u.nomeCompleto as autor_nome,
                 GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
             FROM ${this.table} p
@@ -25,7 +26,7 @@ class PostagemModel extends BaseModel {
     async findByUsuario(usuarioId, page = 1, limit = 10) {
         const offset = (page - 1) * limit;
         return await this.db.query(
-            `SELECT p.*, 
+            `SELECT p.*,
              GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
              FROM ${this.table} p
              LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
@@ -41,8 +42,8 @@ class PostagemModel extends BaseModel {
     async findPublicadas(page = 1, limit = 10) {
         const offset = (page - 1) * limit;
         const query = `
-            SELECT 
-                p.*, 
+            SELECT
+                p.*,
                 u.nomeCompleto as autor_nome,
                 GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
             FROM ${this.table} p
@@ -72,35 +73,37 @@ class PostagemModel extends BaseModel {
     async search(termo, categoriaId = null, page = 1, limit = 10) {
         const offset = (page - 1) * limit;
         let query = `
-            SELECT 
-                p.*, 
+            SELECT
+                p.*,
                 u.nomeCompleto as autor_nome,
                 GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
             FROM ${this.table} p
             LEFT JOIN Usuario u ON p.usuario_idUsuario = u.idUsuario
             LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
             LEFT JOIN Categorias c ON pc.categoria_id = c.idCategoria
-            WHERE p.status = 'publicado' 
+            WHERE p.status = 'publicado'
             AND (p.titulo LIKE ? OR p.conteudo LIKE ? OR p.resumo LIKE ?)
         `;
-        const params = [`%${termo}%`, `%${termo}%`, `%${termo}%`, limit, offset];
+        const params = [`%${termo}%`, `%${termo}%`, `%${termo}%`];
 
         if (categoriaId) {
             query += ` AND pc.categoria_id = ?`;
-            params.splice(3, 0, categoriaId);
+            params.push(parseInt(categoriaId));
         }
 
         query += ` GROUP BY p.idPostagem ORDER BY p.dataPostagem DESC LIMIT ? OFFSET ?`;
+        params.push(limit, offset);
 
         return await this.db.query(query, params);
     }
 
     async updateCategories(postagemId, categorias) {
         return await this.db.transaction(async (connection) => {
-            // Remove categorias existentes
-            await connection.query(`DELETE FROM Postagem_Categoria WHERE postagem_id = ?`, [postagemId]);
-            
-            // Adiciona novas categorias
+            await connection.query(
+                `DELETE FROM Postagem_Categoria WHERE postagem_id = ?`,
+                [postagemId]
+            );
+
             for (const categoriaId of categorias) {
                 await connection.query(
                     `INSERT INTO Postagem_Categoria (postagem_id, categoria_id) VALUES (?, ?)`,
@@ -112,25 +115,30 @@ class PostagemModel extends BaseModel {
 
     async createWithCategories(data, categorias) {
         return await this.db.transaction(async (connection) => {
-            // Criar postagem
             const [result] = await connection.query(
                 `INSERT INTO ${this.table} (
-                    titulo, subTitulo, slug, resumo, conteudo, 
-                    imagem_destaque, imagem_alt, dataPostagem, 
+                    titulo, subTitulo, slug, resumo, conteudo,
+                    imagem_destaque, imagem_alt, dataPostagem,
                     dataAtualizacao, destaque, status, usuario_idUsuario
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
-                    data.titulo, data.subTitulo || null, data.slug,
-                    data.resumo || null, data.conteudo, data.imagem_destaque || null,
-                    data.imagem_alt || null, data.dataPostagem || new Date(),
-                    new Date(), data.destaque || false, data.status || 'rascunho',
+                    data.titulo,
+                    data.subTitulo || null,
+                    data.slug,
+                    data.resumo || null,
+                    data.conteudo,
+                    data.imagem_destaque || null,
+                    data.imagem_alt || null,
+                    data.dataPostagem || new Date(),
+                    new Date(),
+                    data.destaque || false,
+                    data.status || 'rascunho',
                     data.usuario_idUsuario
                 ]
             );
 
             const postagemId = result.insertId;
 
-            // Criar relacionamentos com categorias
             for (const categoriaId of (categorias || [])) {
                 await connection.query(
                     `INSERT INTO Postagem_Categoria (postagem_id, categoria_id) VALUES (?, ?)`,
@@ -140,6 +148,14 @@ class PostagemModel extends BaseModel {
 
             return { idPostagem: postagemId, ...data };
         });
+    }
+
+    // FIX: método que estava sendo chamado mas não existia
+    async incrementarVisualizacoes(idPostagem) {
+        return await this.db.query(
+            `UPDATE ${this.table} SET visualizacoes = visualizacoes + 1 WHERE idPostagem = ?`,
+            [idPostagem]
+        );
     }
 }
 

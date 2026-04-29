@@ -159,6 +159,13 @@
       .somente-admin {
         display: none !important;
       }
+
+      @media (max-width: 640px) {
+        .categorias-card th:nth-child(3),
+        .categorias-card td:nth-child(3) {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -297,17 +304,23 @@
       © 2026 Blog de Notícias. Todos os direitos reservados.
     </footer>
 
+    <script src="../_shared/js/utils.js"></script>
     <script type="module">
-      // ─── Usuário logado ───
-      const usuarioLogado = JSON.parse(localStorage.getItem("usuario")) || {
-        id: 1,
-        nome: "Marcio Souza",
-        nivelAcesso: "admin", // trocar para 'autor' ou 'editor' pra testar restrição
-      };
+      // ─── VERIFICA AUTENTICAÇÃO ───
+      const usuarioLogado = getUsuarioLogado();
+      if (
+        !usuarioLogado ||
+        !["admin", "editor"].includes(usuarioLogado.nivelAcesso)
+      ) {
+        showAlert("Acesso restrito a administradores e editores", "error");
+        setTimeout(() => (window.location.href = "../Home/index.html"), 2000);
+        throw new Error("Acesso negado");
+      }
 
       const isAdmin = usuarioLogado.nivelAcesso === "admin";
+      const API_URL = "/api"; // Ajustar conforme configuração
 
-      // Mostra elementos só-admin se for admin
+      // ─── MOSTRAR ELEMENTOS ADMIN ───
       if (isAdmin) {
         document.querySelectorAll(".somente-admin").forEach((el) => {
           el.style.setProperty("display", "block", "important");
@@ -317,198 +330,275 @@
       // Badge de nível
       const badge = document.getElementById("nivel-badge");
       badge.textContent = usuarioLogado.nivelAcesso;
+      badge.className = `badge pill-${usuarioLogado.nivelAcesso}`;
 
-      // ─── Mock de categorias ───
-      // Substituir por: const res = await fetch('/api/categorias'); categorias = await res.json()
-      let categorias = [
-        {
-          id: 1,
-          nome: "Política",
-          slug: "politica",
-          descricao: "Notícias políticas",
-          status: "ativo",
-        },
-        {
-          id: 2,
-          nome: "Esportes",
-          slug: "esportes",
-          descricao: "Esporte em geral",
-          status: "ativo",
-        },
-        {
-          id: 3,
-          nome: "Tecnologia",
-          slug: "tecnologia",
-          descricao: "Tech e inovação",
-          status: "ativo",
-        },
-        {
-          id: 4,
-          nome: "Saúde",
-          slug: "saude",
-          descricao: "Saúde e bem-estar",
-          status: "ativo",
-        },
-        {
-          id: 5,
-          nome: "Economia",
-          slug: "economia",
-          descricao: "",
-          status: "inativo",
-        },
-      ];
-
-      let proximoId = 6;
+      // ─── VARIÁVEIS GLOBAIS ───
+      let categorias = [];
       let categoriaEmEdicao = null;
 
-      // ─── Renderizar tabela ───
+      // ─── CARREGAR CATEGORIAS ───
+      async function carregarCategorias() {
+        try {
+          document.getElementById("tabela-categorias").innerHTML =
+            '<tr><td colspan="5"><div class="sem-categorias">Carregando...</div></td></tr>';
+
+          const response = await fetch(`${API_URL}/categorias`, {
+            headers: getAuthHeader(),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          if (result.success) {
+            categorias = result.data;
+            renderizar();
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error("Erro:", error);
+          document.getElementById("tabela-categorias").innerHTML = `
+            <tr><td colspan="5" style="text-align:center;padding:3rem;color:var(--cor-erro);">
+              ❌ Erro ao carregar categorias<br>
+              <button class="btn btn-primario" onclick="carregarCategorias()" style="margin-top:1rem;">Tentar novamente</button>
+            </td></tr>
+          `;
+          exibirErro("Erro ao carregar categorias");
+        }
+      }
+
+      // ─── RENDERIZAR ───
       function renderizar() {
         const tbody = document.getElementById("tabela-categorias");
 
         if (categorias.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5"><div class="sem-categorias">Nenhuma categoria cadastrada.</div></td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5"><div class="sem-categorias">Nenhuma categoria encontrada.</div></td></tr>`;
           return;
         }
 
         tbody.innerHTML = categorias
           .map(
             (cat) => `
-        <tr>
-            <td><strong>${cat.nome}</strong></td>
-            <td><code style="font-size:0.8rem;color:var(--cor-texto-suave);">${cat.slug}</code></td>
-            <td style="color:var(--cor-texto-suave);font-size:0.85rem;">${cat.descricao || "—"}</td>
-            <td>
+            <tr>
+              <td><strong>${cat.nome}</strong></td>
+              <td><code style="font-size:0.8rem;color:var(--cor-texto-suave);">${cat.slug}</code></td>
+              <td style="color:var(--cor-texto-suave);font-size:0.85rem;">${cat.descricao || "—"}</td>
+              <td>
                 <span class="status-${cat.status}">
-                    ${cat.status === "ativo" ? "● Ativo" : "○ Inativo"}
+                  ${cat.status === "ativo" ? "● Ativo" : "○ Inativo"}
                 </span>
-            </td>
-            ${
-              isAdmin
-                ? `
-            <td>
+              </td>
+              ${
+                isAdmin
+                  ? `
+              <td>
                 <div class="acoes-tabela">
-                    <button class="btn btn-secundario btn-sm" onclick="abrirEdicao(${cat.id})">✏️ Editar</button>
-                    <button class="btn btn-perigo btn-sm" onclick="excluir(${cat.id})">🗑️</button>
+                  <button class="btn btn-secundario btn-sm" onclick="abrirEdicao(${cat.idCategoria})">✏️ Editar</button>
+                  <button class="btn btn-perigo btn-sm" onclick="excluir(${cat.idCategoria})">🗑️</button>
                 </div>
-            </td>`
-                : "<td></td>"
-            }
-        </tr>
-    `,
+              </td>`
+                  : "<td></td>"
+              }
+            </tr>
+        `,
           )
           .join("");
       }
 
-      // ─── Gerar slug automático ───
+      // ─── GERAR SLUG AUTOMÁTICO ───
+      function gerarSlug(nome) {
+        return nome
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+      }
+
       document
         .getElementById("nome-categoria")
         .addEventListener("input", (e) => {
-          const slug = e.target.value
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-|-$/g, "");
+          const slug = gerarSlug(e.target.value);
           document.getElementById("slug-categoria").value = slug;
         });
 
-      // ─── Criar categoria ───
-      document.getElementById("btn-criar").addEventListener("click", () => {
-        const nome = document.getElementById("nome-categoria").value.trim();
-        const slug = document.getElementById("slug-categoria").value.trim();
-        const desc = document.getElementById("desc-categoria").value.trim();
+      // ─── CRIAR CATEGORIA ───
+      document
+        .getElementById("btn-criar")
+        .addEventListener("click", async () => {
+          const nome = document.getElementById("nome-categoria").value.trim();
+          const slug = document.getElementById("slug-categoria").value.trim();
+          const desc = document.getElementById("desc-categoria").value.trim();
 
-        document.getElementById("erro-nome").textContent = "";
-        document.getElementById("erro-slug").textContent = "";
+          document.getElementById("erro-nome").textContent = "";
+          document.getElementById("erro-slug").textContent = "";
 
-        if (!nome) {
-          document.getElementById("erro-nome").textContent = "Informe o nome.";
-          return;
-        }
-        if (!slug) {
-          document.getElementById("erro-slug").textContent = "Informe o slug.";
-          return;
-        }
-        if (categorias.some((c) => c.slug === slug)) {
-          document.getElementById("erro-slug").textContent = "Slug já existe.";
-          return;
-        }
+          if (!nome) {
+            document.getElementById("erro-nome").textContent =
+              "Nome obrigatório";
+            return;
+          }
+          if (!slug) {
+            document.getElementById("erro-slug").textContent =
+              "Slug obrigatório";
+            return;
+          }
 
-        // Substituir por: await fetch('/api/categorias', { method: 'POST', body: JSON.stringify({nome, slug, descricao: desc}) })
-        categorias.push({
-          id: proximoId++,
-          nome,
-          slug,
-          descricao: desc,
-          status: "ativo",
+          try {
+            const response = await fetch(`${API_URL}/categorias`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...getAuthHeader(),
+              },
+              body: JSON.stringify({ nome, slug, descricao: desc }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              exibirSucesso(`Categoria "${nome}" criada!`);
+              limparFormulario();
+              await carregarCategorias();
+            } else {
+              document.getElementById("erro-slug").textContent =
+                result.error || "Erro ao criar";
+            }
+          } catch (error) {
+            exibirErro("Erro de conexão ao criar categoria");
+          }
         });
 
-        document.getElementById("nome-categoria").value = "";
-        document.getElementById("slug-categoria").value = "";
-        document.getElementById("desc-categoria").value = "";
+      // ─── EDITAR ───
+      window.abrirEdicao = async function (id) {
+        try {
+          const response = await fetch(`${API_URL}/categorias/${id}`, {
+            headers: getAuthHeader(),
+          });
+          const result = await response.json();
 
-        exibirSucesso(`Categoria "${nome}" criada!`);
-        renderizar();
-      });
+          if (result.success) {
+            categoriaEmEdicao = result.data;
+            document.getElementById("edit-nome").value = categoriaEmEdicao.nome;
+            document.getElementById("edit-slug").value = categoriaEmEdicao.slug;
+            document.getElementById("edit-desc").value =
+              categoriaEmEdicao.descricao || "";
+            document.getElementById("edit-status").value =
+              categoriaEmEdicao.status;
+            document.getElementById("edit-erro-nome").textContent = "";
 
-      // ─── Editar ───
-      window.abrirEdicao = function (id) {
-        categoriaEmEdicao = categorias.find((c) => c.id === id);
-        if (!categoriaEmEdicao) return;
-
-        document.getElementById("edit-nome").value = categoriaEmEdicao.nome;
-        document.getElementById("edit-slug").value = categoriaEmEdicao.slug;
-        document.getElementById("edit-desc").value =
-          categoriaEmEdicao.descricao || "";
-        document.getElementById("edit-status").value = categoriaEmEdicao.status;
-        document.getElementById("edit-erro-nome").textContent = "";
-
-        document.getElementById("modal-overlay").classList.add("aberto");
+            document.getElementById("modal-overlay").classList.add("aberto");
+          }
+        } catch (error) {
+          exibirErro("Erro ao carregar categoria");
+        }
       };
 
       document
         .getElementById("btn-salvar-edicao")
-        .addEventListener("click", () => {
+        .addEventListener("click", async () => {
+          if (!categoriaEmEdicao) return;
+
           const nome = document.getElementById("edit-nome").value.trim();
+          document.getElementById("edit-erro-nome").textContent = "";
+
           if (!nome) {
             document.getElementById("edit-erro-nome").textContent =
-              "Informe o nome.";
+              "Nome obrigatório";
             return;
           }
 
-          // Substituir por: await fetch(`/api/categorias/${categoriaEmEdicao.id}`, { method: 'PUT', body: ... })
-          categoriaEmEdicao.nome = nome;
-          categoriaEmEdicao.slug = document
-            .getElementById("edit-slug")
-            .value.trim();
-          categoriaEmEdicao.descricao = document
-            .getElementById("edit-desc")
-            .value.trim();
-          categoriaEmEdicao.status =
-            document.getElementById("edit-status").value;
+          const dados = {
+            nome,
+            slug: document.getElementById("edit-slug").value.trim(),
+            descricao: document.getElementById("edit-desc").value.trim(),
+            status: document.getElementById("edit-status").value,
+          };
 
-          fecharModal();
-          exibirSucesso(`Categoria "${nome}" atualizada!`);
-          renderizar();
+          try {
+            const response = await fetch(
+              `${API_URL}/categorias/${categoriaEmEdicao.idCategoria}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...getAuthHeader(),
+                },
+                body: JSON.stringify(dados),
+              },
+            );
+
+            const result = await response.json();
+
+            if (result.success) {
+              exibirSucesso(`Categoria "${nome}" atualizada!`);
+              fecharModal();
+              await carregarCategorias();
+            } else {
+              document.getElementById("edit-erro-nome").textContent =
+                result.error || "Erro ao salvar";
+            }
+          } catch (error) {
+            exibirErro("Erro de conexão ao salvar");
+          }
         });
 
-      // ─── Excluir ───
-      window.excluir = function (id) {
-        const cat = categorias.find((c) => c.id === id);
-        if (!confirm(`Excluir a categoria "${cat.nome}"?`)) return;
+      // ─── EXCLUIR ───
+      window.excluir = async function (id) {
+        const categoria = categorias.find((c) => c.idCategoria === id);
+        if (!confirm(`Excluir a categoria "${categoria?.nome || "ID " + id}"?`))
+          return;
 
-        // Substituir por: await fetch(`/api/categorias/${id}`, { method: 'DELETE' })
-        categorias = categorias.filter((c) => c.id !== id);
-        exibirSucesso(`Categoria "${cat.nome}" removida.`);
-        renderizar();
+        try {
+          const response = await fetch(`${API_URL}/categorias/${id}`, {
+            method: "DELETE",
+            headers: getAuthHeader(),
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            exibirSucesso(`Categoria "${categoria?.nome}" removida!`);
+            await carregarCategorias();
+          } else {
+            exibirErro(result.error || "Erro ao excluir");
+          }
+        } catch (error) {
+          exibirErro("Erro de conexão ao excluir");
+        }
       };
 
-      // ─── Modal ───
+      // ─── UTILITÁRIOS ───
+      function limparFormulario() {
+        document.getElementById("nome-categoria").value = "";
+        document.getElementById("slug-categoria").value = "";
+        document.getElementById("desc-categoria").value = "";
+        document.getElementById("erro-nome").textContent = "";
+        document.getElementById("erro-slug").textContent = "";
+      }
+
       function fecharModal() {
         document.getElementById("modal-overlay").classList.remove("aberto");
         categoriaEmEdicao = null;
       }
 
+      function exibirSucesso(msg) {
+        const el = document.getElementById("alerta-sucesso");
+        el.textContent = msg;
+        el.style.display = "block";
+        setTimeout(() => (el.style.display = "none"), 3000);
+      }
+
+      function exibirErro(msg) {
+        const el = document.getElementById("alerta-erro");
+        el.textContent = msg;
+        el.style.display = "block";
+        setTimeout(() => (el.style.display = "none"), 5000);
+      }
+
+      // ─── EVENTOS MODAL ───
       document
         .getElementById("modal-fechar")
         .addEventListener("click", fecharModal);
@@ -522,22 +612,11 @@
             fecharModal();
         });
 
-      // ─── Logout ───
-      document.getElementById("btn-logout").addEventListener("click", () => {
-        localStorage.removeItem("usuario");
-        window.location.href = "../Usuario/index.html";
-      });
+      // ─── LOGOUT ───
+      document.getElementById("btn-logout").addEventListener("click", logout);
 
-      // ─── Alertas ───
-      function exibirSucesso(msg) {
-        const el = document.getElementById("alerta-sucesso");
-        el.textContent = msg;
-        el.style.display = "block";
-        setTimeout(() => (el.style.display = "none"), 3000);
-      }
-
-      // ─── Init ───
-      renderizar();
+      // ─── INICIALIZAÇÃO ───
+      carregarCategorias();
     </script>
   </body>
 </html>
