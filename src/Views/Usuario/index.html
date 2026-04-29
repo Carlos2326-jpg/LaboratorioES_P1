@@ -6,40 +6,473 @@
     <title>Login - Blog de Notícias</title>
     <link rel="stylesheet" href="../_shared/css/base.css" />
     <link rel="stylesheet" href="../_shared/css/components.css" />
+    <style>
+      .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .auth-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+      .logo {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      .logo h1 {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 0;
+      }
+      .subtitulo {
+        color: #6b7280;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+        text-align: center;
+      }
+      .campo {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+      }
+      .campo label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.9rem;
+      }
+      .campo input {
+        padding: 0.875rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s;
+      }
+      .campo input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
+      .btn-primario {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        padding: 0.875rem 1.5rem;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.2s;
+      }
+      .btn-primario:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+      }
+      .btn-primario:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .auth-links {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+        font-size: 0.875rem;
+      }
+      .auth-link {
+        color: #6b7280;
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .auth-link:hover {
+        color: #2563eb;
+      }
+      .alerta {
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+      }
+      .alerta-sucesso {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+      .alerta-erro {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+      }
+      .otp-section {
+        display: none;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+      }
+      .otp-input {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin: 1rem 0;
+      }
+      .otp-digit {
+        width: 3rem;
+        height: 3.5rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      .otp-digit:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
+      .navbar {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .navbar__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .navbar__logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-decoration: none;
+      }
+      @media (max-width: 480px) {
+        .auth-card {
+          margin: 1rem;
+          padding: 2rem 1.5rem;
+        }
+        .otp-digit {
+          width: 2.5rem;
+          height: 3rem;
+          font-size: 1.25rem;
+        }
+      }
+    </style>
   </head>
   <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar__inner">
+        <a href="/" class="navbar__logo">📰 Blog de Notícias</a>
+      </div>
+    </nav>
+
     <main class="auth-page">
       <div class="auth-card">
-        <h1>📰 Blog de Notícias</h1>
-        <p class="subtitulo">Faça login para continuar</p>
+        <div class="logo">
+          <h1>Login</h1>
+        </div>
+        <p class="subtitulo">Faça login para acessar o painel</p>
 
+        <!-- Alertas -->
         <div id="alert-container"></div>
 
-        <form id="form-login">
+        <!-- Form Login Tradicional -->
+        <form id="form-login" style="display: block">
           <div class="campo">
             <label for="email">E-mail</label>
-            <input type="email" id="email" required />
+            <input
+              type="email"
+              id="email"
+              required
+              placeholder="admin@blog.com"
+            />
           </div>
-
           <div class="campo">
             <label for="senha">Senha</label>
-            <input type="password" id="senha" required />
+            <input type="password" id="senha" required placeholder="••••••••" />
           </div>
+          <button type="submit" class="btn-primario">Entrar</button>
+        </form>
 
-          <button type="submit" class="btn btn-primario">Entrar</button>
-
-          <p class="auth-link">
-            <a href="/usuario/redefinir-senha">Esqueceu a senha?</a>
+        <!-- Form OTP (oculto inicialmente) -->
+        <form id="form-otp" class="otp-section" style="display: none">
+          <div class="campo">
+            <label>Confirme seu código</label>
+            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem">
+              Enviamos um código de 6 dígitos para
+              <strong id="email-confirm"></strong>
+            </p>
+            <div class="otp-input">
+              <input
+                type="text"
+                class="otp-digit"
+                maxlength="1"
+                data-index="0"
+              />
+              <input
+                type="text"
+                class="otp-digit"
+                maxlength="1"
+                data-index="1"
+              />
+              <input
+                type="text"
+                class="otp-digit"
+                maxlength="1"
+                data-index="2"
+              />
+              <input
+                type="text"
+                class="otp-digit"
+                maxlength="1"
+                data-index="3"
+              />
+              <input
+                type="text"
+                class="otp-digit"
+                maxlength="1"
+                data-index="4"
+              />
+              <input
+                type="text"
+                class="otp-digit"
+                maxlength="1"
+                data-index="5"
+              />
+            </div>
+          </div>
+          <button type="submit" class="btn-primario">Verificar Código</button>
+          <p
+            style="
+              text-align: center;
+              margin-top: 1rem;
+              font-size: 0.8rem;
+              color: #6b7280;
+            "
+          >
+            Não recebeu?
+            <a href="#" id="resend-otp" style="color: #2563eb"
+              >Enviar novamente</a
+            >
           </p>
         </form>
 
-        <p class="auth-link">
-          Não tem conta? <a href="/usuario/cadastro">Cadastre-se</a>
-        </p>
+        <div class="auth-links">
+          <a href="/usuario/cadastro" class="auth-link">Criar conta</a>
+          <a href="/usuario/redefinir-senha" class="auth-link"
+            >Esqueceu senha?</a
+          >
+        </div>
       </div>
     </main>
 
     <script src="/_shared/js/utils.js"></script>
-    <script src="/Usuario/js/login.js" type="module"></script>
+    <script>
+      // Auto-fill email após cadastro
+      document.addEventListener("DOMContentLoaded", () => {
+        const emailCadastro = localStorage.getItem("cadastro-email");
+        if (emailCadastro) {
+          document.getElementById("email").value = emailCadastro;
+          localStorage.removeItem("cadastro-email");
+          showAlert(
+            "✅ Cadastro realizado!<br>Digite sua senha para continuar.",
+            "success",
+          );
+          document.getElementById("senha").focus();
+        }
+      });
+
+      let currentEmail = "";
+      let otpResendCount = 0;
+      const MAX_RESEND = 3;
+
+      // OTP Inputs Handler
+      function initOTPInputs() {
+        const inputs = document.querySelectorAll(".otp-digit");
+        inputs.forEach((input, index) => {
+          input.addEventListener("input", (e) => {
+            if (e.data && !/[0-9]/.test(e.data)) {
+              e.target.value = "";
+              return;
+            }
+            if (e.target.value) {
+              if (index < 5) inputs[index + 1].focus();
+            }
+          });
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace" && !e.target.value && index > 0) {
+              inputs[index - 1].focus();
+            }
+          });
+          input.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData(
+              "text",
+            );
+            if (paste && /^\d{6}$/.test(paste)) {
+              paste.split("").forEach((digit, i) => {
+                if (inputs[i]) inputs[i].value = digit;
+              });
+              inputs[5].focus();
+            }
+          });
+        });
+      }
+
+      // Login Tradicional
+      document
+        .getElementById("form-login")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const email = document.getElementById("email").value.trim();
+          const senha = document.getElementById("senha").value;
+
+          if (!email || !senha) {
+            showAlert("Preencha todos os campos", "error");
+            return;
+          }
+
+          const btn = e.target.querySelector('button[type="submit"]');
+          const originalText = btn.textContent;
+          btn.textContent = "Entrando...";
+          btn.disabled = true;
+
+          try {
+            const response = await fetch(`${API_URL}/usuario/login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, senha }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              setUsuarioLogado(result.data.usuario, result.data.token);
+              showAlert("Login realizado com sucesso! 🎉", "success");
+              setTimeout(() => (window.location.href = "/home"), 1500);
+            } else {
+              showAlert(result.error || "Erro no login", "error");
+            }
+          } catch (error) {
+            showAlert("Erro de conexão. Verifique o servidor.", "error");
+          } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }
+        });
+
+      // OTP Verification
+      document
+        .getElementById("form-otp")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const inputs = document.querySelectorAll(".otp-digit");
+          const otp = Array.from(inputs)
+            .map((input) => input.value)
+            .join("");
+
+          if (otp.length !== 6) {
+            showAlert("Digite o código completo de 6 dígitos", "error");
+            return;
+          }
+
+          const btn = e.target.querySelector('button[type="submit"]');
+          const originalText = btn.textContent;
+          btn.textContent = "Verificando...";
+          btn.disabled = true;
+
+          try {
+            const response = await fetch(`${API_URL}/usuario/verificar-otp`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: currentEmail, otp }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              setUsuarioLogado(result.data.usuario, result.data.token);
+              showAlert("Verificação concluída! 🎉", "success");
+              setTimeout(() => (window.location.href = "/home"), 1500);
+            } else {
+              showAlert(result.error || "Código inválido", "error");
+              inputs[0].focus();
+              inputs.forEach((input) => (input.value = ""));
+            }
+          } catch (error) {
+            showAlert("Erro de conexão", "error");
+          } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }
+        });
+
+      // Resend OTP
+      document
+        .getElementById("resend-otp")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          if (otpResendCount >= MAX_RESEND) {
+            showAlert(
+              "Limite de reenvio atingido. Tente novamente em 5 minutos.",
+              "error",
+            );
+            return;
+          }
+
+          const btn = e.target;
+          btn.textContent = "Enviando...";
+          btn.style.pointerEvents = "none";
+
+          try {
+            const response = await fetch(`${API_URL}/usuario/solicitar-otp`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: currentEmail }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+              showAlert("Novo código enviado!", "success");
+              otpResendCount++;
+              document
+                .querySelectorAll(".otp-digit")
+                .forEach((input) => (input.value = ""));
+              document.querySelector(".otp-digit").focus();
+            }
+          } catch (error) {
+            showAlert("Erro ao reenviar código", "error");
+          } finally {
+            btn.textContent = "Enviar novamente";
+            btn.style.pointerEvents = "auto";
+          }
+        });
+
+      // Initialize OTP
+      initOTPInputs();
+
+      console.log("✅ Login page com OTP carregada!");
+    </script>
   </body>
 </html>

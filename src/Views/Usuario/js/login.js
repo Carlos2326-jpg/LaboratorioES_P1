@@ -1,22 +1,21 @@
-import { API_URL, showAlert, setUsuarioLogado } from '../../_shared/js/utils.js';
+// utils.js já carregado no HTML — todas as funções disponíveis globalmente
 
-document.getElementById('login-form').addEventListener('submit', async (e) => {
+document.getElementById('form-login').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const senha = document.getElementById('senha').value;
 
-    if (!email || !password) {
+    if (!email || !senha) {
         showAlert('Preencha todos os campos', 'error');
         return;
     }
 
     try {
-        // Corrigido: URL alinhada com api.js
         const response = await fetch(`${API_URL}/usuario/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, senha: password })
+            body: JSON.stringify({ email, senha })
         });
 
         const result = await response.json();
@@ -24,9 +23,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         if (result.success) {
             setUsuarioLogado(result.data.usuario, result.data.token);
             showAlert('Login realizado com sucesso!', 'success');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1500);
+            setTimeout(() => { window.location.href = '/home'; }, 1500);
         } else {
             showAlert(result.error, 'error');
         }

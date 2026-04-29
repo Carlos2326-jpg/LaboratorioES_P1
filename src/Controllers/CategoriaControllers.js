@@ -1,3 +1,4 @@
+// src/Controllers/CategoriaControllers.js
 const CategoriaService = require('../Services/CategoriaService');
 
 class CategoriaController {
@@ -10,7 +11,7 @@ class CategoriaController {
             const categorias = await this.categoriaService.listarTodas();
             res.json({ success: true, data: categorias });
         } catch (error) {
-            console.error('Erro ao listar categorias:', error);
+            console.error('Erro ao listar categorias:', error.message);
             res.status(500).json({ success: false, error: error.message });
         }
     }
@@ -18,10 +19,13 @@ class CategoriaController {
     async buscarPorId(req, res) {
         try {
             const id = parseInt(req.params.id);
-            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            if (isNaN(id) || id <= 0) {
+                return res.status(400).json({ success: false, error: 'ID inválido' });
+            }
             const categoria = await this.categoriaService.buscarPorId(id);
             res.json({ success: true, data: categoria });
         } catch (error) {
+            console.error('Erro ao buscar categoria:', error.message);
             res.status(404).json({ success: false, error: error.message });
         }
     }
@@ -29,8 +33,13 @@ class CategoriaController {
     async criar(req, res) {
         try {
             const categoria = await this.categoriaService.criarCategoria(req.body, req.usuario);
-            res.status(201).json({ success: true, message: 'Categoria criada!', data: categoria });
+            res.status(201).json({ 
+                success: true, 
+                message: 'Categoria criada com sucesso!', 
+                data: categoria 
+            });
         } catch (error) {
+            console.error('Erro ao criar categoria:', error.message);
             res.status(400).json({ success: false, error: error.message });
         }
     }
@@ -38,10 +47,17 @@ class CategoriaController {
     async atualizar(req, res) {
         try {
             const id = parseInt(req.params.id);
-            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            if (isNaN(id) || id <= 0) {
+                return res.status(400).json({ success: false, error: 'ID inválido' });
+            }
             const categoria = await this.categoriaService.atualizarCategoria(id, req.body, req.usuario);
-            res.json({ success: true, message: 'Categoria atualizada!', data: categoria });
+            res.json({ 
+                success: true, 
+                message: 'Categoria atualizada!', 
+                data: categoria 
+            });
         } catch (error) {
+            console.error('Erro ao atualizar categoria:', error.message);
             res.status(400).json({ success: false, error: error.message });
         }
     }
@@ -49,10 +65,13 @@ class CategoriaController {
     async deletar(req, res) {
         try {
             const id = parseInt(req.params.id);
-            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            if (isNaN(id) || id <= 0) {
+                return res.status(400).json({ success: false, error: 'ID inválido' });
+            }
             await this.categoriaService.deletarCategoria(id, req.usuario);
-            res.json({ success: true, message: 'Categoria excluída!' });
+            res.json({ success: true, message: 'Categoria excluída com sucesso!' });
         } catch (error) {
+            console.error('Erro ao deletar categoria:', error.message);
             res.status(400).json({ success: false, error: error.message });
         }
     }

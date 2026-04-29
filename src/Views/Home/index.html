@@ -7,32 +7,59 @@
     <link rel="stylesheet" href="../_shared/css/base.css" />
     <link rel="stylesheet" href="../_shared/css/components.css" />
     <style>
+      :root {
+        --cor-primaria: #2563eb;
+        --cor-primaria-hover: #1d4ed8;
+        --cor-sucesso: #16a34a;
+        --cor-erro: #dc2626;
+        --cor-texto: #111827;
+        --cor-texto-suave: #6b7280;
+        --cor-borda: #d1d5db;
+        --cor-fundo: #f9fafb;
+        --cor-branco: #ffffff;
+        --cor-card: #ffffff;
+        --raio: 8px;
+        --sombra: 0 4px 6px rgba(0, 0, 0, 0.07);
+      }
+
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--cor-fundo);
+        color: var(--cor-texto);
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+      }
+
+      /* Hero */
       .hero {
-        background: linear-gradient(
-          135deg,
-          var(--cor-primaria) 0%,
-          var(--cor-primaria-escura) 100%
-        );
+        background: linear-gradient(135deg, var(--cor-primaria), #1e40af);
         color: white;
-        padding: 3rem 2rem;
+        padding: 4rem 2rem;
         border-radius: var(--raio);
-        margin-bottom: 2rem;
+        margin: 2rem 0;
         text-align: center;
       }
-
       .hero h1 {
         font-size: 2.5rem;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
+      }
+      .hero p {
+        font-size: 1.1rem;
+        opacity: 0.95;
       }
 
+      /* Filtros */
       .filtros {
         display: flex;
-        gap: 0.75rem;
+        gap: 0.5rem;
         flex-wrap: wrap;
-        margin-bottom: 2rem;
+        margin: 2rem 0;
         justify-content: center;
       }
-
       .filtro-btn {
         padding: 0.5rem 1.25rem;
         border: 2px solid var(--cor-borda);
@@ -40,20 +67,79 @@
         background: var(--cor-branco);
         cursor: pointer;
         transition: all 0.3s;
+        font-weight: 500;
       }
-
-      .filtro-btn.ativo,
-      .filtro-btn:hover {
+      .filtro-btn:hover,
+      .filtro-btn.ativo {
         background: var(--cor-primaria);
         color: white;
         border-color: var(--cor-primaria);
       }
 
+      /* Grid de notícias */
+      .grid-noticias {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+      .noticia-card {
+        background: var(--cor-card);
+        border-radius: var(--raio);
+        box-shadow: var(--sombra);
+        overflow: hidden;
+        transition: all 0.3s;
+      }
+      .noticia-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      }
+      .noticia-imagem {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+      .noticia-conteudo {
+        padding: 1.25rem;
+      }
+      .noticia-categoria {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--cor-primaria);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .noticia-titulo {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0.75rem 0;
+        line-height: 1.4;
+      }
+      .noticia-titulo a {
+        color: var(--cor-texto);
+        text-decoration: none;
+      }
+      .noticia-titulo a:hover {
+        color: var(--cor-primaria);
+      }
+      .noticia-resumo {
+        color: var(--cor-texto-suave);
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+      }
+      .noticia-meta {
+        font-size: 0.8rem;
+        color: var(--cor-texto-suave);
+        display: flex;
+        gap: 1rem;
+      }
+
+      /* Loading */
       .loading {
         text-align: center;
         padding: 3rem;
+        color: var(--cor-texto-suave);
       }
-
       .spinner {
         border: 3px solid var(--cor-borda);
         border-top: 3px solid var(--cor-primaria);
@@ -61,9 +147,8 @@
         width: 40px;
         height: 40px;
         animation: spin 1s linear infinite;
-        margin: 0 auto;
+        margin: 0 auto 1rem;
       }
-
       @keyframes spin {
         0% {
           transform: rotate(0deg);
@@ -72,38 +157,352 @@
           transform: rotate(360deg);
         }
       }
+
+      /* Paginação */
+      .paginacao {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 3rem 0;
+      }
+      .btn-pagina {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--cor-borda);
+        background: var(--cor-branco);
+        border-radius: var(--raio);
+        cursor: pointer;
+      }
+      .btn-pagina:hover,
+      .btn-pagina.ativo {
+        background: var(--cor-primaria);
+        color: white;
+        border-color: var(--cor-primaria);
+      }
+
+      /* Navbar melhorada */
+      .navbar {
+        background: var(--cor-branco);
+        border-bottom: 1px solid var(--cor-borda);
+        padding: 0.75rem 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .navbar__inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .navbar__logo {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--cor-primaria);
+      }
+      .navbar__acoes {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .btn {
+        padding: 0.5rem 1rem;
+        border-radius: var(--raio);
+        text-decoration: none;
+        font-weight: 500;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+      .btn-primario {
+        background: var(--cor-primaria);
+        color: white;
+        border-color: var(--cor-primaria);
+      }
+      .btn-secundario {
+        background: transparent;
+        color: var(--cor-primaria);
+        border-color: var(--cor-primaria);
+      }
+      .usuario-nome {
+        font-weight: 500;
+        color: var(--cor-texto);
+        margin-right: 1rem;
+      }
+
+      /* Footer */
+      .footer {
+        background: var(--cor-branco);
+        border-top: 1px solid var(--cor-borda);
+        padding: 2rem 1rem;
+        text-align: center;
+        color: var(--cor-texto-suave);
+        margin-top: 4rem;
+      }
+
+      @media (max-width: 768px) {
+        .hero h1 {
+          font-size: 2rem;
+        }
+        .grid-noticias {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
+    <!-- Header dinâmico -->
     <div id="header-container"></div>
 
     <main class="container">
-      <div class="hero">
+      <!-- Hero -->
+      <section class="hero">
         <h1>📰 Blog de Notícias</h1>
-        <p>As últimas notícias do mundo em um só lugar</p>
-      </div>
+        <p>As últimas notícias do mundo, em tempo real</p>
+      </section>
 
+      <!-- Filtros -->
       <div class="filtros" id="filtros-categoria">
         <button class="filtro-btn ativo" data-categoria="">📰 Todas</button>
+        <span class="loading">Carregando categorias...</span>
       </div>
 
+      <!-- Loading -->
       <div class="loading" id="loading" style="display: none">
         <div class="spinner"></div>
         <p>Carregando notícias...</p>
       </div>
 
-      <div class="home-grid" id="grid-noticias"></div>
+      <!-- Grid de notícias -->
+      <div class="grid-noticias" id="grid-noticias"></div>
 
-      <div class="sem-resultados" id="sem-resultados" style="display: none">
-        Nenhuma notícia encontrada.
+      <!-- Sem resultados -->
+      <div
+        id="sem-resultados"
+        style="
+          display: none;
+          text-align: center;
+          padding: 3rem;
+          color: var(--cor-texto-suave);
+        "
+      >
+        <h3>📭</h3>
+        <p>Nenhuma notícia encontrada</p>
       </div>
 
+      <!-- Paginação -->
       <div class="paginacao" id="paginacao"></div>
     </main>
 
-    <div id="footer-container"></div>
+    <!-- Footer -->
+    <footer class="footer" id="footer-container">
+      <p>© 2024 Blog de Notícias. Todos os direitos reservados.</p>
+    </footer>
 
+    <!-- Utils (global) -->
     <script src="/_shared/js/utils.js"></script>
-    <script src="/Home/js/home.js"></script>
+
+    <!-- Home Logic (sem modules - funciona em qualquer navegador) -->
+    <script>
+      // === ESTADO ===
+      let currentPage = 1;
+      let currentCategoria = "";
+      let totalPages = 0;
+      let isLoading = false;
+
+      // === CARREGAR HEADER DINÂMICO ===
+      async function loadHeader() {
+        const usuario = getUsuarioLogado();
+        const headerContainer = document.getElementById("header-container");
+
+        headerContainer.innerHTML = `
+                <nav class="navbar">
+                    <div class="navbar__inner">
+                        <a href="/" class="navbar__logo">📰 Blog de Notícias</a>
+                        <div class="navbar__acoes">
+                            ${
+                              usuario
+                                ? `
+                                <span class="usuario-nome">Olá, ${usuario.nomeCompleto?.split(" ")[0] || "Usuário"}</span>
+                                <a href="/usuario/minhas-postagens" class="btn btn-secundario">📝 Minhas</a>
+                                ${
+                                  ["admin", "editor"].includes(
+                                    usuario.nivelAcesso,
+                                  )
+                                    ? '<a href="/usuario/gerenciar" class="btn btn-secundario">👥 Admin</a>'
+                                    : ""
+                                }
+                                <button class="btn btn-secundario" onclick="logout()">Sair</button>
+                            `
+                                : `
+                                <a href="/usuario/login" class="btn btn-primario">Entrar</a>
+                                <a href="/usuario/cadastro" class="btn btn-secundario">Cadastrar</a>
+                            `
+                            }
+                        </div>
+                    </div>
+                </nav>
+            `;
+      }
+
+      // === CARREGAR CATEGORIAS ===
+      async function carregarCategorias() {
+        try {
+          const response = await fetch(`${API_URL}/categorias`);
+          const result = await response.json();
+
+          if (result.success && result.data?.length) {
+            const filtrosDiv = document.getElementById("filtros-categoria");
+            const categoriasHtml = result.data
+              .filter((cat) => cat.status === "ativo")
+              .map(
+                (cat) => `
+                            <button class="filtro-btn" data-categoria="${cat.idCategoria}">
+                                📁 ${cat.nome}
+                            </button>
+                        `,
+              )
+              .join("");
+
+            filtrosDiv.innerHTML = `
+                        <button class="filtro-btn ativo" data-categoria="">📰 Todas</button>
+                        ${categoriasHtml}
+                    `;
+
+            // Eventos dos filtros
+            filtrosDiv.querySelectorAll(".filtro-btn").forEach((btn) => {
+              btn.addEventListener("click", () => {
+                filtrosDiv
+                  .querySelectorAll(".filtro-btn")
+                  .forEach((b) => b.classList.remove("ativo"));
+                btn.classList.add("ativo");
+                currentCategoria = btn.dataset.categoria || "";
+                currentPage = 1;
+                carregarPostagens();
+              });
+            });
+          }
+        } catch (error) {
+          console.error("Erro categorias:", error);
+          document.getElementById("filtros-categoria").innerHTML =
+            "<span>Erro ao carregar categorias</span>";
+        }
+      }
+
+      // === CARREGAR POSTAGENS ===
+      async function carregarPostagens() {
+        if (isLoading) return;
+        isLoading = true;
+
+        const loading = document.getElementById("loading");
+        const grid = document.getElementById("grid-noticias");
+        const semResultados = document.getElementById("sem-resultados");
+
+        loading.style.display = "block";
+        grid.innerHTML = "";
+        semResultados.style.display = "none";
+
+        try {
+          let url = `${API_URL}/postagens?page=${currentPage}&limit=9`;
+          if (currentCategoria) url += `&categoriaId=${currentCategoria}`;
+
+          const response = await fetch(url);
+          const result = await response.json();
+
+          if (result.success && result.data?.length > 0) {
+            grid.innerHTML = result.data
+              .map(
+                (post) => `
+                        <article class="noticia-card">
+                            ${
+                              post.imagem_destaque
+                                ? `<img src="${post.imagem_destaque}" alt="${post.imagem_alt || post.titulo}" class="noticia-imagem">`
+                                : `<div class="noticia-imagem" style="background: linear-gradient(135deg, #f3f4f6, #e5e7eb); display: flex; align-items: center; justify-content: center; color: var(--cor-texto-suave); font-size: 0.9rem;">📄 Sem imagem</div>`
+                            }
+                            <div class="noticia-conteudo">
+                                <span class="noticia-categoria">${post.categorias_nome || "Geral"}</span>
+                                <h2 class="noticia-titulo">
+                                    <a href="/noticia/${post.slug}">${post.titulo}</a>
+                                </h2>
+                                <p class="noticia-resumo">
+                                    ${post.resumo || post.conteudo.substring(0, 150)}...
+                                </p>
+                                <div class="noticia-meta">
+                                    <span>📅 ${formatarData(post.dataPostagem)}</span>
+                                    <span>✍️ ${post.autor_nome || "Autor"}</span>
+                                    ${post.visualizacoes ? `<span>👁️ ${post.visualizacoes}</span>` : ""}
+                                </div>
+                            </div>
+                        </article>
+                    `,
+              )
+              .join("");
+
+            totalPages = result.totalPages || 1;
+            renderizarPaginacao();
+          } else {
+            semResultados.style.display = "block";
+          }
+        } catch (error) {
+          console.error("Erro postagens:", error);
+          showAlert("Erro ao carregar notícias", "error");
+          semResultados.innerHTML =
+            '<p>Erro ao carregar notícias. <button onclick="carregarPostagens()" class="btn-primario">Tentar novamente</button></p>';
+          semResultados.style.display = "block";
+        } finally {
+          loading.style.display = "none";
+          isLoading = false;
+        }
+      }
+
+      // === PAGINAÇÃO ===
+      function renderizarPaginacao() {
+        const paginacao = document.getElementById("paginacao");
+        if (totalPages <= 1) return (paginacao.innerHTML = "");
+
+        let html = "";
+        // Anterior
+        if (currentPage > 1) {
+          html += `<button class="btn-pagina" onclick="currentPage--; carregarPostagens()">« Anterior</button>`;
+        }
+
+        // Páginas
+        const start = Math.max(1, currentPage - 2);
+        const end = Math.min(totalPages, currentPage + 2);
+        for (let i = start; i <= end; i++) {
+          html += `<button class="btn-pagina ${i === currentPage ? "ativo" : ""}" onclick="currentPage=${i}; carregarPostagens()">${i}</button>`;
+        }
+
+        // Próxima
+        if (currentPage < totalPages) {
+          html += `<button class="btn-pagina" onclick="currentPage++; carregarPostagens()">Próxima »</button>`;
+        }
+
+        paginacao.innerHTML = html;
+      }
+
+      // === INICIALIZAÇÃO ===
+      async function init() {
+        console.log("🚀 Iniciando Home...");
+        await loadHeader();
+        await carregarCategorias();
+        carregarPostagens();
+      }
+
+      // === BUSCA DO HEADER ===
+      window.buscar = function () {
+        const termo = document.getElementById("campo-busca")?.value?.trim();
+        if (termo) {
+          window.location.href = `/?busca=${encodeURIComponent(termo)}`;
+        }
+      };
+
+      // Inicia quando DOM carregar
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+      } else {
+        init();
+      }
+
+      console.log("✅ Home carregada!");
+    </script>
   </body>
 </html>
