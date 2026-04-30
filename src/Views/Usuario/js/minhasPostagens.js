@@ -1,44 +1,54 @@
 import { API, formatarData, getAuthHeader, getUsuarioLogado } from '../../_shared/js/utils.js';
 
 async function carregarPostagens() {
-    const usuario = getUsuarioLogado();
-    if (!usuario) {
-        window.location.href = '/usuario/login';
+    const token = getToken();
+    if (!token) {
+        showAlert('Sessão expirada', 'error');
+        logout();
         return;
     }
-    
+
     try {
-        const response = await fetch(`${API}/usuario/minhas-postagens`, {
-            headers: getAuthHeader()
+        console.log('🔍 Enviando request com token:', token.substring(0, 20) + '...');
+        
+        const response = await fetch(`${API_URL}/usuario/minhas-postagens`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
+        
+        console.log('🔍 Status:', response.status);
+        
+        if (response.status === 401) {
+            showAlert('Sessão expirada. Faça login novamente.', 'error');
+            logout();
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log('🔍 Resultado:', result);
         
         if (result.success && result.data) {
-            const tbody = document.getElementById('tabela-postagens');
-            
-            if (result.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="loading-text">Nenhuma postagem encontrada</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = result.data.map(post => `
-                <tr>
-                    <td>
-                        <strong><a href="/noticia/${post.slug}">${post.titulo}</a></strong>
-                        ${post.resumo ? `<br><small>${post.resumo.substring(0, 100)}...</small>` : ''}
-                    </td>
-                    <td><span class="status-pill status-${post.status}">${post.status}</span></td>
-                    <td>${formatarData(post.dataPostagem)}</td>
-                    <td>${post.visualizacoes || 0}</td>
-                    <td class="acoes">
-                        <button class="btn btn-sm btn-secundario" onclick="editarPostagem(${post.idPostagem})">Editar</button>
-                        <button class="btn btn-sm btn-perigo" onclick="excluirPostagem(${post.idPostagem})">Excluir</button>
-                    </td>
-                </tr>
-            `).join('');
+            renderizarPostagens(result.data);
+        } else {
+            throw new Error(result.error || 'Resposta inválida');
         }
     } catch (error) {
-        console.error('Erro:', error);
+        console.error('❌ Erro completo:', error);
+        document.getElementById('tabela-postagens').innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 3rem; color: #dc2626;">
+                    <strong>Erro: ${error.message}</strong><br><br>
+                    <button onclick="carregarPostagens()" style="background: #2563eb; color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer;">🔄 Tentar Novamente</button>
+                    <br><button onclick="logout()" style="background: #6b7280; color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; margin-top: 0.5rem;">🔐 Fazer Login</button>
+                </td>
+            </tr>
+        `;
     }
 }
 

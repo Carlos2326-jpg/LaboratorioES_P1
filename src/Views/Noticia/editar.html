@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar Postagem - Blog de Notícias</title>
+    <link rel="stylesheet" href="../../_shared/css/base.css" />
+    <link rel="stylesheet" href="../../_shared/css/components.css" />
+    <style>
+      .admin-page {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .page-header h1 {
+        font-size: 1.75rem;
+        margin: 0;
+      }
+      .form-section {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        margin-bottom: 1.5rem;
+      }
+      .form-section h2 {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #2563eb;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+      .campo {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .campo.full {
+        grid-column: 1 / -1;
+      }
+      .campo label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #374151;
+      }
+      .campo input,
+      .campo select,
+      .campo textarea {
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: border-color 0.2s;
+      }
+      .campo input:focus,
+      .campo select:focus,
+      .campo textarea:focus {
+        outline: none;
+        border-color: #2563eb;
+      }
+      .campo textarea {
+        min-height: 200px;
+        resize: vertical;
+      }
+      .status-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        background: #f9fafb;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+      }
+      .status-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        flex: 1;
+        min-width: 140px;
+      }
+      .status-option.active {
+        background: #dbeafe;
+        border-color: #2563eb;
+      }
+      .status-option:hover:not(.active) {
+        background: #f3f4f6;
+      }
+      .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 280px;
+        overflow-y: auto;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+      }
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .checkbox-item:hover {
+        background: #f3f4f6;
+      }
+      .botoes-acao {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #f3f4f6;
+      }
+      .btn-primario,
+      .btn-secundario {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        text-decoration: none;
+        text-align: center;
+      }
+      .btn-primario {
+        background: #2563eb;
+        color: white;
+      }
+      .btn-primario:hover {
+        background: #1d4ed8;
+      }
+      .btn-secundario {
+        background: transparent;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+      }
+      .btn-secundario:hover {
+        background: #f9fafb;
+      }
+      .image-preview {
+        max-width: 200px;
+        max-height: 150px;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+      }
+      @media (max-width: 768px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .botoes-acao {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header-container"></div>
+
+    <main class="admin-page">
+      <div class="page-header">
+        <h1 id="page-title">✏️ Carregando...</h1>
+        <div style="display: flex; gap: 0.5rem">
+          <a
+            href="/usuario/minhas-postagens"
+            class="btn-secundario"
+            style="
+              padding: 0.5rem 1rem;
+              border-radius: 6px;
+              border: 2px solid #e5e7eb;
+              text-decoration: none;
+              color: #374151;
+            "
+            >← Postagens</a
+          >
+        </div>
+      </div>
+
+      <div id="alert-container"></div>
+
+      <form id="edit-form" class="form-section">
+        <input type="hidden" id="postagem-id" />
+
+        <h2>📝 Dados da Postagem</h2>
+        <div class="form-grid">
+          <div class="campo">
+            <label for="edit-titulo">Título *</label>
+            <input type="text" id="edit-titulo" required maxlength="200" />
+          </div>
+          <div class="campo">
+            <label for="edit-subtitulo">Subtítulo</label>
+            <input type="text" id="edit-subtitulo" maxlength="200" />
+          </div>
+          <div class="campo full">
+            <label for="edit-slug">Slug (URL)</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center">
+              <span style="color: #6b7280">/noticia/</span>
+              <input type="text" id="edit-slug" style="flex: 1" />
+              <button
+                type="button"
+                onclick="gerarNovoSlug()"
+                style="
+                  background: #6b7280;
+                  color: white;
+                  border: none;
+                  padding: 0.5rem 1rem;
+                  border-radius: 6px;
+                  cursor: pointer;
+                "
+              >
+                ✨ Gerar
+              </button>
+            </div>
+          </div>
+          <div class="campo full">
+            <label for="edit-conteudo">Conteúdo *</label>
+            <textarea id="edit-conteudo" required></textarea>
+          </div>
+          <div class="campo">
+            <label for="edit-imagem-url">URL da Imagem Destaque</label>
+            <input type="url" id="edit-imagem-url" placeholder="https://..." />
+            <div id="edit-imagem-preview"></div>
+          </div>
+          <div class="campo">
+            <label for="edit-resumo">Resumo</label>
+            <textarea id="edit-resumo" maxlength="160" rows="3"></textarea>
+            <small id="resumo-contador">0/160</small>
+          </div>
+        </div>
+
+        <h2>📊 Status</h2>
+        <div class="status-group">
+          <div
+            class="status-option active"
+            data-status="rascunho"
+            onclick="selecionarStatus(this)"
+          >
+            <span>📄</span>
+            <div>
+              <strong>Rascunho</strong><br /><small>Não publicado</small>
+            </div>
+          </div>
+          <div
+            class="status-option"
+            data-status="publicado"
+            onclick="selecionarStatus(this)"
+          >
+            <span>🌟</span>
+            <div>
+              <strong>Publicado</strong><br /><small>Visível para todos</small>
+            </div>
+          </div>
+          <div
+            class="status-option"
+            data-status="agendado"
+            onclick="selecionarStatus(this)"
+          >
+            <span>⏰</span>
+            <div>
+              <strong>Agendado</strong><br /><small>Publica na data</small>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="edit-status" value="rascunho" />
+
+        <div class="form-grid" style="margin-top: 1rem">
+          <div class="campo">
+            <label for="edit-dataPostagem">Data de Publicação</label>
+            <input type="datetime-local" id="edit-dataPostagem" />
+          </div>
+          <div class="campo" style="justify-content: flex-end">
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                cursor: pointer;
+              "
+            >
+              <input type="checkbox" id="edit-destaque" />
+              Marcar como destaque
+            </label>
+          </div>
+        </div>
+
+        <h2>🏷️ Categorias *</h2>
+        <div class="campo full">
+          <small id="categoria-count" style="color: #2563eb; font-weight: 600"
+            >Carregando...</small
+          >
+          <div
+            id="categorias-container"
+            class="checkbox-group"
+            style="margin-top: 0.5rem"
+          ></div>
+        </div>
+
+        <div class="botoes-acao">
+          <button type="submit" class="btn-primario" id="btn-submit">
+            💾 Atualizar Postagem
+          </button>
+          <a href="/usuario/minhas-postagens" class="btn-secundario"
+            >← Cancelar</a
+          >
+        </div>
+      </form>
+    </main>
+
+    <script src="/_shared/js/utils.js"></script>
+    <script>
+      // ─── ESTADO ───
+      const usuario = getUsuarioLogado();
+      if (!usuario || !usuario.idUsuario) {
+        showAlert("Você precisa estar logado", "error");
+        setTimeout(() => (window.location.href = "/usuario/login"), 1500);
+        throw new Error("Não autenticado");
+      }
+
+      let postagemAtual = null;
+      let categorias = [];
+
+      // ─── HEADER ───
+      document.getElementById("header-container").innerHTML = `
+        <nav class="navbar">
+          <div class="navbar__inner">
+            <a href="/home" class="navbar__logo">📰 Blog de Notícias</a>
+            <div class="navbar__acoes">
+              <span>Olá, ${usuario.nomeCompleto?.split(" ")[0] || "Usuário"}</span>
+              <a href="/usuario/minhas-postagens" class="btn btn-primario">📝 Postagens</a>
+              <button class="btn btn-secundario" onclick="logout()">Sair</button>
+            </div>
+          </div>
+        </nav>`;
+
+      // ─── EXTRAIR ID DA URL ───
+      function getPostagemId() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has("id")) return params.get("id");
+
+        const segments = window.location.pathname.split("/").filter(Boolean);
+        const last = segments[segments.length - 1];
+        return !isNaN(last) && last !== "editar" ? last : null;
+      }
+
+      const postagemId = getPostagemId();
+      if (!postagemId) {
+        showAlert("ID da postagem não encontrado na URL", "error");
+        setTimeout(
+          () => (window.location.href = "/usuario/minhas-postagens"),
+          2000,
+        );
+        throw new Error("ID não encontrado");
+      }
+
+      // ─── SLUG ───
+      function gerarSlugLocal(texto) {
+        return texto
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .substring(0, 100);
+      }
+
+      window.gerarNovoSlug = () => {
+        const titulo = document.getElementById("edit-titulo").value.trim();
+        if (!titulo) {
+          showAlert("Digite o título primeiro", "error");
+          return;
+        }
+        document.getElementById("edit-slug").value = gerarSlugLocal(titulo);
+      };
+
+      window.selecionarStatus = (el) => {
+        document
+          .querySelectorAll(".status-option")
+          .forEach((e) => e.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById("edit-status").value = el.dataset.status;
+      };
+
+      // ─── CARREGAR CATEGORIAS ───
+      async function carregarCategorias() {
+        try {
+          const res = await fetch(`${API_URL}/categorias`);
+          const data = await res.json();
+          if (data.success) {
+            categorias = data.data.filter((c) => c.status === "ativo");
+            renderizarCategorias();
+            document.getElementById("categoria-count").textContent =
+              `${categorias.length} categorias disponíveis`;
+          }
+        } catch (e) {
+          document.getElementById("categoria-count").textContent =
+            "Erro ao carregar categorias";
+        }
+      }
+
+      function renderizarCategorias() {
+        const container = document.getElementById("categorias-container");
+        container.innerHTML = categorias
+          .map(
+            (cat) => `
+          <label class="checkbox-item">
+            <input type="checkbox" data-cat-id="${cat.idCategoria}" value="${cat.idCategoria}">
+            <span>${cat.nome}</span>
+          </label>`,
+          )
+          .join("");
+      }
+
+      function marcarCategorias(categoriasIds) {
+        const ids = (categoriasIds || []).map(Number);
+        document
+          .querySelectorAll('#categorias-container input[type="checkbox"]')
+          .forEach((cb) => {
+            cb.checked = ids.includes(parseInt(cb.value));
+          });
+      }
+
+      // ─── CARREGAR POSTAGEM ───
+      // FIX: usa /api/postagens/editar/:id (que retorna categorias como array de IDs)
+      async function carregarPostagem() {
+        document.getElementById("page-title").textContent = `✏️ Carregando...`;
+        try {
+          const res = await fetch(`${API_URL}/postagens/editar/${postagemId}`, {
+            headers: getAuthHeader(),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `HTTP ${res.status}`);
+          }
+          const result = await res.json();
+          if (!result.success) throw new Error(result.error);
+
+          postagemAtual = result.data;
+          preencherFormulario();
+          document.getElementById("page-title").textContent =
+            `✏️ Editando: "${postagemAtual.titulo}"`;
+          showAlert(`Postagem carregada!`, "success");
+        } catch (error) {
+          showAlert(`Erro ao carregar: ${error.message}`, "error");
+          document.getElementById("page-title").textContent =
+            "❌ Erro ao carregar";
+          setTimeout(
+            () => (window.location.href = "/usuario/minhas-postagens"),
+            3000,
+          );
+        }
+      }
+
+      function preencherFormulario() {
+        document.getElementById("postagem-id").value =
+          postagemAtual.idPostagem || "";
+        document.getElementById("edit-titulo").value =
+          postagemAtual.titulo || "";
+        document.getElementById("edit-subtitulo").value =
+          postagemAtual.subTitulo || "";
+        document.getElementById("edit-slug").value = postagemAtual.slug || "";
+        document.getElementById("edit-conteudo").value =
+          postagemAtual.conteudo || "";
+        document.getElementById("edit-resumo").value =
+          postagemAtual.resumo || "";
+        document.getElementById("edit-destaque").checked =
+          !!postagemAtual.destaque;
+
+        // Status
+        const status = postagemAtual.status || "rascunho";
+        document.getElementById("edit-status").value = status;
+        document.querySelectorAll(".status-option").forEach((el) => {
+          el.classList.toggle("active", el.dataset.status === status);
+        });
+
+        // Data
+        if (postagemAtual.dataPostagem) {
+          try {
+            const d = new Date(postagemAtual.dataPostagem);
+            if (!isNaN(d))
+              document.getElementById("edit-dataPostagem").value = d
+                .toISOString()
+                .slice(0, 16);
+          } catch (_) {}
+        }
+
+        // Imagem
+        const imgUrl = postagemAtual.imagem_destaque;
+        if (imgUrl) {
+          document.getElementById("edit-imagem-url").value = imgUrl;
+          document.getElementById("edit-imagem-preview").innerHTML =
+            `<img src="${imgUrl}" class="image-preview" alt="Preview" onerror="this.style.display='none'">`;
+        }
+
+        // Resumo contador
+        atualizarContadorResumo();
+
+        // Categorias (array de IDs vindos da API)
+        marcarCategorias(postagemAtual.categorias || []);
+      }
+
+      function atualizarContadorResumo() {
+        const v = document.getElementById("edit-resumo").value.length;
+        document.getElementById("resumo-contador").textContent = `${v}/160`;
+      }
+
+      // ─── SALVAR ───
+      async function salvarPostagem() {
+        const titulo = document.getElementById("edit-titulo").value.trim();
+        const conteudo = document.getElementById("edit-conteudo").value.trim();
+        const checked = document.querySelectorAll(
+          "#categorias-container input:checked",
+        );
+        const categIds = Array.from(checked).map((cb) => parseInt(cb.value));
+
+        if (!titulo) {
+          showAlert("Título é obrigatório", "error");
+          return;
+        }
+        if (!conteudo) {
+          showAlert("Conteúdo é obrigatório", "error");
+          return;
+        }
+        if (!categIds.length) {
+          showAlert("Selecione ao menos 1 categoria", "error");
+          return;
+        }
+
+        const btn = document.getElementById("btn-submit");
+        btn.disabled = true;
+        btn.textContent = "⏳ Salvando...";
+
+        // FIX: envia JSON (não FormData) para a API REST
+        const payload = {
+          titulo,
+          subTitulo:
+            document.getElementById("edit-subtitulo").value.trim() || null,
+          slug: document.getElementById("edit-slug").value.trim(),
+          conteudo,
+          resumo: document.getElementById("edit-resumo").value.trim() || null,
+          imagem_destaque:
+            document.getElementById("edit-imagem-url").value.trim() || null,
+          destaque: document.getElementById("edit-destaque").checked,
+          status: document.getElementById("edit-status").value,
+          categorias: categIds,
+        };
+
+        const dataPostagem = document.getElementById("edit-dataPostagem").value;
+        if (dataPostagem) payload.dataPostagem = dataPostagem;
+
+        try {
+          const res = await fetch(`${API_URL}/postagens/${postagemId}`, {
+            method: "PUT",
+            headers: { ...getAuthHeader(), "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const result = await res.json();
+
+          if (result.success) {
+            showAlert(
+              `✅ "${result.data?.titulo}" atualizada com sucesso!`,
+              "success",
+            );
+            setTimeout(
+              () => (window.location.href = "/usuario/minhas-postagens"),
+              1500,
+            );
+          } else {
+            throw new Error(result.error || "Erro ao salvar");
+          }
+        } catch (error) {
+          showAlert(`❌ ${error.message}`, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "💾 Atualizar Postagem";
+        }
+      }
+
+      // ─── EVENT LISTENERS ───
+      document.getElementById("edit-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        salvarPostagem();
+      });
+
+      document.getElementById("edit-titulo").addEventListener("input", (e) => {
+        if (!document.getElementById("edit-slug").value.trim()) {
+          document.getElementById("edit-slug").value = gerarSlugLocal(
+            e.target.value,
+          );
+        }
+      });
+
+      document
+        .getElementById("edit-resumo")
+        .addEventListener("input", atualizarContadorResumo);
+
+      document
+        .getElementById("edit-imagem-url")
+        .addEventListener("input", (e) => {
+          const url = e.target.value.trim();
+          document.getElementById("edit-imagem-preview").innerHTML = url
+            ? `<img src="${url}" class="image-preview" alt="Preview" onerror="this.style.display='none'">`
+            : "";
+        });
+
+      // ─── INIT ───
+      async function init() {
+        await Promise.all([carregarCategorias(), carregarPostagem()]);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

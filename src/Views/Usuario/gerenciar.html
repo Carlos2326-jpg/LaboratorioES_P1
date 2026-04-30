@@ -229,6 +229,11 @@
         font-weight: 700;
       }
 
+      .acoes-tabela {
+        display: flex;
+        gap: 0.5rem;
+      }
+
       @media (max-width: 640px) {
         .usuarios-card th:nth-child(4),
         .usuarios-card td:nth-child(4),
@@ -316,7 +321,7 @@
         </button>
       </div>
 
-      <p class="contador" id="contador"></p>
+      <p class="contador" id="contador">Carregando...</p>
 
       <!-- Tabela -->
       <div class="usuarios-card">
@@ -401,80 +406,61 @@
       © 2026 Blog de Notícias. Todos os direitos reservados.
     </footer>
 
+    <script src="../_shared/js/utils.js"></script>
     <script type="module">
-      // ─── Segurança: só admin acessa ───
-      const usuarioLogado = JSON.parse(localStorage.getItem("usuario")) || {
-        id: 1,
-        nome: "Marcio Souza",
-        nivelAcesso: "admin",
-      };
-
-      if (usuarioLogado.nivelAcesso !== "admin") {
-        window.location.href = "../Home/index.html";
+      // ─── VERIFICA AUTENTICAÇÃO ───
+      const usuarioLogado = getUsuarioLogado();
+      if (!usuarioLogado || usuarioLogado.nivelAcesso !== "admin") {
+        showAlert("Acesso exclusivo de administrador", "error");
+        setTimeout(() => (window.location.href = "../Home/index.html"), 2000);
+        throw new Error("Acesso negado");
       }
 
-      // ─── Mock de usuários ───
-      // Substituir por: const res = await fetch('/api/usuarios'); usuarios = await res.json()
-      let usuarios = [
-        {
-          id: 1,
-          nome: "Marcio Souza",
-          email: "marcio@email.com",
-          nivelAcesso: "admin",
-          status: "ativo",
-          dataCadastro: "2026-01-10",
-          ultimoAcesso: "2026-04-27",
-        },
-        {
-          id: 2,
-          nome: "André Costa",
-          email: "andre@email.com",
-          nivelAcesso: "editor",
-          status: "ativo",
-          dataCadastro: "2026-01-12",
-          ultimoAcesso: "2026-04-26",
-        },
-        {
-          id: 3,
-          nome: "João Silva",
-          email: "joao@email.com",
-          nivelAcesso: "autor",
-          status: "ativo",
-          dataCadastro: "2026-01-15",
-          ultimoAcesso: "2026-04-25",
-        },
-        {
-          id: 4,
-          nome: "Maria Oliveira",
-          email: "maria@email.com",
-          nivelAcesso: "leitor",
-          status: "ativo",
-          dataCadastro: "2026-02-03",
-          ultimoAcesso: "2026-04-20",
-        },
-        {
-          id: 5,
-          nome: "Pedro Santos",
-          email: "pedro@email.com",
-          nivelAcesso: "autor",
-          status: "inativo",
-          dataCadastro: "2026-02-20",
-          ultimoAcesso: "2026-03-10",
-        },
-        {
-          id: 6,
-          nome: "Ana Lima",
-          email: "ana@email.com",
-          nivelAcesso: "leitor",
-          status: "bloqueado",
-          dataCadastro: "2026-03-01",
-          ultimoAcesso: "2026-03-05",
-        },
-      ];
+      // ─── VARIÁVEIS GLOBAIS ───
+      let usuarios = [];
+      let usuarioEmEdicao = null;
+      const API_URL = "/api"; // Ajustar conforme sua configuração
 
-      window.usuarioEmEdicao = null;
+      // ─── CARREGAR USUÁRIOS DO BANCO ───
+      async function carregarUsuarios(filtros = {}) {
+        try {
+          const params = new URLSearchParams({
+            pagina: 1,
+            limite: 50,
+            ...filtros,
+          });
 
-      // ─── Filtros ───
+          document.getElementById("tabela-usuarios").innerHTML =
+            '<tr><td colspan="6"><div class="sem-usuarios">Carregando...</div></td></tr>';
+
+          const response = await fetch(`${API_URL}/usuarios?${params}`, {
+            headers: getAuthHeader(),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          if (result.success) {
+            usuarios = result.data;
+            renderizar();
+          } else {
+            throw new Error(result.error);
+          }
+        } catch (error) {
+          console.error("Erro:", error);
+          document.getElementById("tabela-usuarios").innerHTML = `
+            <tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--cor-erro);">
+              ❌ Erro ao carregar usuários<br>
+              <button class="btn btn-primario" onclick="carregarUsuarios()" style="margin-top:1rem;">Tentar novamente</button>
+            </td></tr>
+          `;
+          showAlert("Erro ao carregar usuários", "error");
+        }
+      }
+
+      // ─── FILTROS ───
       function obterFiltrados() {
         const busca = document
           .getElementById("filtro-busca")
@@ -486,7 +472,7 @@
         return usuarios.filter((u) => {
           const matchBusca =
             !busca ||
-            u.nome.toLowerCase().includes(busca) ||
+            u.nomeCompleto.toLowerCase().includes(busca) ||
             u.email.toLowerCase().includes(busca);
           const matchPerfil = !perfil || u.nivelAcesso === perfil;
           const matchStatus = !status || u.status === status;
@@ -494,21 +480,32 @@
         });
       }
 
-      // ─── Formatação ───
+      // ─── FORMATAÇÃO ───
       function formatarData(dataStr) {
         if (!dataStr) return "—";
-        return new Date(dataStr + "T00:00:00").toLocaleDateString("pt-BR");
+        return new Date(dataStr).toLocaleDateString("pt-BR");
       }
 
       function pillPerfil(perfil) {
-        return `<span class="pill pill-${perfil}">${perfil}</span>`;
+        const classes = {
+          admin: "pill-admin",
+          editor: "pill-editor",
+          autor: "pill-autor",
+          leitor: "pill-leitor",
+        };
+        return `<span class="pill ${classes[perfil] || "pill-leitor"}">${perfil}</span>`;
       }
 
       function pillStatus(status) {
-        return `<span class="pill pill-${status}">${status}</span>`;
+        const classes = {
+          ativo: "pill-ativo",
+          inativo: "pill-inativo",
+          bloqueado: "pill-bloqueado",
+        };
+        return `<span class="pill ${classes[status] || "pill-inativo"}">${status}</span>`;
       }
 
-      // ─── Renderizar ───
+      // ─── RENDERIZAR ───
       function renderizar() {
         const lista = obterFiltrados();
         const tbody = document.getElementById("tabela-usuarios");
@@ -524,83 +521,111 @@
         tbody.innerHTML = lista
           .map(
             (u) => `
-        <tr>
-            <td>
+            <tr>
+              <td>
                 <div class="usuario-row">
-                    <div class="mini-avatar">${u.nome.charAt(0).toUpperCase()}</div>
-                    <div>
-                        <div style="font-weight:500;">${u.nome}</div>
-                        <div class="usuario-email">${u.email}</div>
-                    </div>
+                  <div class="mini-avatar">${u.nomeCompleto.charAt(0).toUpperCase()}</div>
+                  <div>
+                    <div style="font-weight:500;">${u.nomeCompleto}</div>
+                    <div class="usuario-email">${u.email}</div>
+                  </div>
                 </div>
-            </td>
-            <td>${pillPerfil(u.nivelAcesso)}</td>
-            <td>${pillStatus(u.status)}</td>
-            <td>${formatarData(u.dataCadastro)}</td>
-            <td>${formatarData(u.ultimoAcesso)}</td>
-            <td>
-                <button class="btn btn-secundario btn-sm" onclick="abrirEdicao(${u.id})">✏️ Editar</button>
-            </td>
-        </tr>
-    `,
+              </td>
+              <td>${pillPerfil(u.nivelAcesso)}</td>
+              <td>${pillStatus(u.status)}</td>
+              <td>${formatarData(u.dataCadastro)}</td>
+              <td>${formatarData(u.ultimoAcesso)}</td>
+              <td>
+                <div class="acoes-tabela">
+                  <button class="btn btn-secundario btn-sm" onclick="abrirEdicao(${u.idUsuario})">✏️ Editar</button>
+                </div>
+              </td>
+            </tr>
+        `,
           )
           .join("");
       }
 
-      // ─── Modal edição ───
-      window.abrirEdicao = function (id) {
-        window.usuarioEmEdicao = usuarios.find((u) => u.id === id);
-        if (!window.usuarioEmEdicao) return;
+      // ─── MODAL EDIÇÃO ───
+      window.abrirEdicao = async function (id) {
+        try {
+          const response = await fetch(`${API_URL}/usuarios/${id}`, {
+            headers: getAuthHeader(),
+          });
+          const result = await response.json();
 
-        document.getElementById("modal-avatar").textContent =
-          window.usuarioEmEdicao.nome.charAt(0).toUpperCase();
-        document.getElementById("modal-nome").textContent =
-          window.usuarioEmEdicao.nome;
-        document.getElementById("modal-email").textContent =
-          window.usuarioEmEdicao.email;
-        document.getElementById("edit-perfil").value =
-          window.usuarioEmEdicao.nivelAcesso;
-        document.getElementById("edit-status").value =
-          window.usuarioEmEdicao.status;
-        document.getElementById("modal-erro").style.display = "none";
+          if (result.success) {
+            usuarioEmEdicao = result.data;
+            document.getElementById("modal-avatar").textContent =
+              usuarioEmEdicao.nomeCompleto.charAt(0).toUpperCase();
+            document.getElementById("modal-nome").textContent =
+              usuarioEmEdicao.nomeCompleto;
+            document.getElementById("modal-email").textContent =
+              usuarioEmEdicao.email;
+            document.getElementById("edit-perfil").value =
+              usuarioEmEdicao.nivelAcesso;
+            document.getElementById("edit-status").value =
+              usuarioEmEdicao.status;
+            document.getElementById("modal-erro").style.display = "none";
 
-        document.getElementById("modal-overlay").classList.add("aberto");
+            document.getElementById("modal-overlay").classList.add("aberto");
+          }
+        } catch (error) {
+          showAlert("Erro ao carregar usuário", "error");
+        }
       };
 
-      document.getElementById("btn-salvar").addEventListener("click", () => {
-        const novoPerfil = document.getElementById("edit-perfil").value;
-        const novoStatus = document.getElementById("edit-status").value;
-        const erroEl = document.getElementById("modal-erro");
+      // ─── SALVAR EDIÇÃO ───
+      document
+        .getElementById("btn-salvar")
+        .addEventListener("click", async () => {
+          if (!usuarioEmEdicao) return;
 
-        // Proteção: não pode rebaixar o último admin (Caso de Uso 08 - fluxo alternativo 3.a)
-        const admins = usuarios.filter((u) => u.nivelAcesso === "admin");
-        if (
-          window.usuarioEmEdicao.nivelAcesso === "admin" &&
-          novoPerfil !== "admin" &&
-          admins.length <= 1
-        ) {
-          erroEl.textContent =
-            "Não é possível rebaixar o único administrador do sistema.";
-          erroEl.style.display = "block";
-          return;
-        }
+          const novoPerfil = document.getElementById("edit-perfil").value;
+          const novoStatus = document.getElementById("edit-status").value;
+          const erroEl = document.getElementById("modal-erro");
 
-        // Alterar aqui também
+          const dados = {
+            nomeCompleto: usuarioEmEdicao.nomeCompleto,
+            nivelAcesso: novoPerfil,
+            status: novoStatus,
+          };
 
-        window.usuarioEmEdicao.nivelAcesso = novoPerfil;
-        window.usuarioEmEdicao.status = novoStatus;
+          try {
+            const response = await fetch(
+              `${API_URL}/usuarios/${usuarioEmEdicao.idUsuario}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...getAuthHeader(),
+                },
+                body: JSON.stringify(dados),
+              },
+            );
 
-        const nomeAtualizado = window.usuarioEmEdicao.nome;
-        fecharModal();
-        exibirSucesso(`Usuário "${nomeAtualizado}" atualizado!`);
-        renderizar();
-      });
+            const result = await response.json();
+
+            if (result.success) {
+              exibirSucesso(`Usuário "${dados.nomeCompleto}" atualizado!`);
+              fecharModal();
+              await carregarUsuarios();
+            } else {
+              erroEl.textContent = result.error;
+              erroEl.style.display = "block";
+            }
+          } catch (error) {
+            erroEl.textContent = "Erro ao salvar";
+            erroEl.style.display = "block";
+          }
+        });
 
       function fecharModal() {
         document.getElementById("modal-overlay").classList.remove("aberto");
-        window.usuarioEmEdicao = null;
+        usuarioEmEdicao = null;
       }
 
+      // ─── EVENTOS MODAL ───
       document
         .getElementById("modal-fechar")
         .addEventListener("click", fecharModal);
@@ -614,7 +639,7 @@
             fecharModal();
         });
 
-      // ─── Filtros listeners ───
+      // ─── FILTROS LISTENERS ───
       ["filtro-busca", "filtro-perfil", "filtro-status"].forEach((id) => {
         document.getElementById(id).addEventListener("input", renderizar);
       });
@@ -626,13 +651,10 @@
         renderizar();
       });
 
-      // ─── Logout ───
-      document.getElementById("btn-logout").addEventListener("click", () => {
-        localStorage.removeItem("usuario");
-        window.location.href = "../Usuario/index.html";
-      });
+      // ─── LOGOUT ───
+      document.getElementById("btn-logout").addEventListener("click", logout);
 
-      // ─── Alertas ───
+      // ─── ALERTAS ───
       function exibirSucesso(msg) {
         const el = document.getElementById("alerta-sucesso");
         el.textContent = msg;
@@ -640,8 +662,8 @@
         setTimeout(() => (el.style.display = "none"), 3000);
       }
 
-      // ─── Init ───
-      renderizar();
+      // ─── INICIALIZAÇÃO ───
+      carregarUsuarios();
     </script>
   </body>
 </html>

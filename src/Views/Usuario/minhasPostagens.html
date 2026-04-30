@@ -12,34 +12,50 @@
         margin: 2rem auto;
         padding: 0 1rem;
       }
-
-      .postagens-table {
-        width: 100%;
-        background: var(--cor-branco);
-        border-radius: var(--raio);
-        overflow: hidden;
-        box-shadow: var(--sombra);
+      .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
       }
-
-      .postagens-table th {
-        background: var(--cor-fundo);
+      .dashboard-header h1 {
+        font-size: 1.75rem;
+        margin: 0;
+      }
+      .postagens-table {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        background: #f9fafb;
         padding: 1rem;
         text-align: left;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
-
-      .postagens-table td {
+      td {
         padding: 1rem;
-        border-top: 1px solid var(--cor-borda);
+        border-top: 1px solid #f3f4f6;
+        vertical-align: middle;
       }
-
+      tr:hover td {
+        background: #f9fafb;
+      }
       .status-pill {
-        display: inline-block;
         padding: 0.25rem 0.75rem;
         border-radius: 999px;
         font-size: 0.75rem;
         font-weight: 600;
       }
-
       .status-publicado {
         background: #dcfce7;
         color: #166534;
@@ -52,10 +68,61 @@
         background: #dbeafe;
         color: #1e40af;
       }
-
       .acoes {
         display: flex;
         gap: 0.5rem;
+      }
+      .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      .btn-editar {
+        background: #2563eb;
+        color: white;
+      }
+      .btn-excluir {
+        background: #dc2626;
+        color: white;
+      }
+      .loading-text {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
+      }
+      .stat-numero {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2563eb;
+      }
+      .stat-label {
+        color: #6b7280;
+        font-size: 0.9rem;
+      }
+      @media (max-width: 768px) {
+        .acoes {
+          flex-direction: column;
+        }
+        .dashboard-header {
+          flex-direction: column;
+          gap: 1rem;
+        }
       }
     </style>
   </head>
@@ -64,8 +131,26 @@
 
     <main class="dashboard-container">
       <div class="dashboard-header">
-        <h1>Minhas Postagens</h1>
+        <h1>📝 Minhas Postagens</h1>
         <a href="/noticia/criar" class="btn btn-primario">+ Nova Postagem</a>
+      </div>
+
+      <div id="alert-container"></div>
+
+      <!-- Stats -->
+      <div class="stats" id="stats-container" style="display: none">
+        <div class="stat-card">
+          <div class="stat-numero" id="total-postagens">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-numero" id="publicadas">0</div>
+          <div class="stat-label">Publicadas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-numero" id="rascunhos">0</div>
+          <div class="stat-label">Rascunhos</div>
+        </div>
       </div>
 
       <div class="postagens-table">
@@ -81,16 +166,128 @@
           </thead>
           <tbody id="tabela-postagens">
             <tr>
-              <td colspan="5" class="loading-text">Carregando...</td>
+              <td colspan="5" class="loading-text">
+                Carregando suas postagens...
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </main>
 
-    <div id="footer-container"></div>
-
     <script src="/_shared/js/utils.js"></script>
-    <script src="/Usuario/js/minhasPostagens.js" type="module"></script>
+    <script>
+      const usuario = getUsuarioLogado();
+      if (!usuario) {
+        window.location.href = "/usuario/login";
+      }
+
+      document.getElementById("header-container").innerHTML = `
+        <nav class="navbar">
+          <div class="navbar__inner">
+            <a href="/home" class="navbar__logo">📰 Blog de Notícias</a>
+            <div class="navbar__acoes">
+              <span>Olá, ${usuario?.nomeCompleto?.split(" ")[0] || "Usuário"}</span>
+              <a href="/home" class="btn btn-secundario">🏠 Home</a>
+              <a href="/noticia/criar" class="btn btn-primario">+ Nova</a>
+              <button class="btn btn-secundario" onclick="logout()">Sair</button>
+            </div>
+          </div>
+        </nav>`;
+
+      async function carregarPostagens() {
+        try {
+          const response = await fetch(`${API_URL}/usuario/minhas-postagens`, {
+            headers: getAuthHeader(),
+          });
+
+          if (response.status === 401) {
+            logout();
+            return;
+          }
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          const result = await response.json();
+          if (result.success && result.data) {
+            renderizarPostagens(result.data);
+          } else {
+            throw new Error(result.error || "Resposta inválida");
+          }
+        } catch (error) {
+          console.error("Erro:", error);
+          document.getElementById("tabela-postagens").innerHTML = `
+            <tr><td colspan="5" class="loading-text" style="color:#dc2626;">
+              Erro: ${error.message}<br>
+              <button onclick="carregarPostagens()" style="margin-top:1rem;background:#2563eb;color:white;padding:0.5rem 1rem;border:none;border-radius:6px;cursor:pointer;">Tentar novamente</button>
+            </td></tr>`;
+        }
+      }
+
+      function renderizarPostagens(postagens) {
+        const tbody = document.getElementById("tabela-postagens");
+        const stats = document.getElementById("stats-container");
+
+        if (!postagens.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="loading-text">Você ainda não tem postagens. <a href="/noticia/criar">Crie a primeira!</a></td></tr>';
+          return;
+        }
+
+        document.getElementById("total-postagens").textContent =
+          postagens.length;
+        document.getElementById("publicadas").textContent = postagens.filter(
+          (p) => p.status === "publicado",
+        ).length;
+        document.getElementById("rascunhos").textContent = postagens.filter(
+          (p) => p.status === "rascunho",
+        ).length;
+        stats.style.display = "grid";
+
+        tbody.innerHTML = postagens
+          .map(
+            (post) => `
+          <tr>
+            <td>
+              <strong><a href="/noticia/${post.slug}" target="_blank">${post.titulo}</a></strong>
+              ${post.resumo ? `<br><small style="color:#6b7280">${post.resumo.substring(0, 80)}...</small>` : ""}
+            </td>
+            <td><span class="status-pill status-${post.status}">${post.status}</span></td>
+            <td>${formatarData(post.dataPostagem)}</td>
+            <td>${post.visualizacoes || 0}</td>
+            <td class="acoes">
+              <button class="btn-sm btn-editar"  onclick="editar(${post.idPostagem})">✏️ Editar</button>
+              <button class="btn-sm btn-excluir" onclick="excluir(${post.idPostagem})">🗑️ Excluir</button>
+            </td>
+          </tr>`,
+          )
+          .join("");
+      }
+
+      // FIX: era /Noticia/editar/ (N maiúsculo) — rota é /noticia/editar/
+      window.editar = (id) => {
+        window.location.href = `/noticia/editar/${id}`;
+      };
+
+      window.excluir = async (id) => {
+        if (!confirm("Tem certeza? Esta ação não pode ser desfeita.")) return;
+        try {
+          const response = await fetch(`${API_URL}/postagens/${id}`, {
+            method: "DELETE",
+            headers: getAuthHeader(),
+          });
+          const result = await response.json();
+          if (result.success) {
+            showAlert("Postagem excluída!", "success");
+            setTimeout(carregarPostagens, 1000);
+          } else {
+            showAlert(result.error, "error");
+          }
+        } catch (error) {
+          showAlert("Erro ao excluir", "error");
+        }
+      };
+
+      carregarPostagens();
+    </script>
   </body>
 </html>

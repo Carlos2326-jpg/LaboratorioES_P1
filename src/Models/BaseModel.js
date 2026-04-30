@@ -1,52 +1,68 @@
+// src/Models/BaseModel.js
 const db = require('../Config/DataBase');
 
 class BaseModel {
-  constructor(tableName) {
-    this.table = tableName;
-    this.db = db;
-  }
+    constructor(tableName, idField = 'id') {
+        this.table = tableName;
+        this.idField = idField;
+        this.db = db;
+    }
 
-  async all() {
-    return await this.db.query(`SELECT * FROM ${this.table}`);
-  }
+    async all(fields = '*') {
+        return await this.db.query(`SELECT ${fields} FROM ${this.table}`);
+    }
 
-  async find(id, idField = 'id') {
-    const rows = await this.db.query(`SELECT * FROM ${this.table} WHERE ${idField} = ?`, [id]);
-    return rows[0];
-  }
+    async find(id, fields = '*') {
+        const rows = await this.db.query(
+            `SELECT ${fields} FROM ${this.table} WHERE ${this.idField} = ? LIMIT 1`,
+            [id]
+        );
+        return rows[0] || null;
+    }
 
-  async create(data) {
-    const keys = Object.keys(data);
-    const values = Object.values(data);
-    const placeholders = keys.map(() => '?').join(',');
+    async create(data) {
+        const keys = Object.keys(data);
+        const values = Object.values(data);
+        const placeholders = keys.map(() => '?').join(', ');
 
-    const result = await this.db.query(
-      `INSERT INTO ${this.table} (${keys.join(',')}) VALUES (${placeholders})`,
-      values
-    );
-    return { id: result.insertId, ...data };
-  }
+        const result = await this.db.query(
+            `INSERT INTO ${this.table} (${keys.join(', ')}) VALUES (${placeholders})`,
+            values
+        );
+        return { [this.idField]: result.insertId, ...data };
+    }
 
-  async update(id, data, idField = 'id') {
-    const sets = Object.keys(data).map(key => `${key} = ?`).join(',');
-    const values = [...Object.values(data), id];
+    // FIX: o parâmetro `fields` causava bug — sets era baseado em `fields`
+    // mas `values` era baseado em Object.values(data). Removido o param `fields`
+    // para manter consistência: sempre usa as chaves do próprio `data`.
+    async update(id, data) {
+        const keys = Object.keys(data);
+        if (keys.length === 0) return false;
 
-    const result = await this.db.query(
-      `UPDATE ${this.table} SET ${sets} WHERE ${idField} = ?`,
-      values
-    );
-    return result.affectedRows > 0;
-  }
+        const sets = keys.map(key => `${key} = ?`).join(', ');
+        const values = [...Object.values(data), id];
 
-  async delete(id, idField = 'id') {
-    const result = await this.db.query(`DELETE FROM ${this.table} WHERE ${idField} = ?`, [id]);
-    return result.affectedRows > 0;
-  }
+        const result = await this.db.query(
+            `UPDATE ${this.table} SET ${sets} WHERE ${this.idField} = ?`,
+            values
+        );
+        return result.affectedRows > 0;
+    }
 
-  async count() {
-    const rows = await this.db.query(`SELECT COUNT(*) as total FROM ${this.table}`);
-    return rows[0].total;
-  }
+    async delete(id) {
+        const result = await this.db.query(
+            `DELETE FROM ${this.table} WHERE ${this.idField} = ?`,
+            [id]
+        );
+        return result.affectedRows > 0;
+    }
+
+    async count(whereClause = '1=1') {
+        const rows = await this.db.query(
+            `SELECT COUNT(*) as total FROM ${this.table} WHERE ${whereClause}`
+        );
+        return rows[0].total;
+    }
 }
 
 module.exports = BaseModel;
