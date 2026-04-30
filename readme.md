@@ -8,7 +8,7 @@ Conta com funcionalidades como sistema de busca e categorização por temas, tor
 
 🔗 *Repositório:* https://github.com/Carlos2326-jpg/LaboratorioES_P1.git
 
-![Screenshot da aplicação](./docs/screenshot.png)
+<img width="1591" height="791" alt="image" src="https://github.com/user-attachments/assets/1e5173cc-c909-4704-b599-168ca5d261d3" />
 
 ## 🛠️ Tecnologias
 
