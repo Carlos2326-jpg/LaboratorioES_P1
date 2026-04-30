@@ -204,7 +204,7 @@ class PostagemService {
         }
 
         // Atualizar categorias se fornecidas
-        if (categorias && categorias.length > 0) {
+        if (categorias !== undefined && categorias !== null) {
             await this.postagemModel.updateCategories(
                 id,
                 categorias.map(cid => parseInt(cid))

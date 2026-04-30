@@ -1,5 +1,3 @@
-import { API, formatarData } from '../../_shared/js/utils.js';
-
 async function carregarNoticia() {
     const slug = window.location.pathname.split('/').pop();
     const loading = document.getElementById('loading');
@@ -7,7 +5,7 @@ async function carregarNoticia() {
     const erro = document.getElementById('erro-mensagem');
 
     try {
-        const response = await fetch(`${API}/postagens/${slug}`);
+        const response = await fetch(`${API_URL}/postagens/slug/${slug}`);
         const result = await response.json();
 
         if (result.success && result.data) {

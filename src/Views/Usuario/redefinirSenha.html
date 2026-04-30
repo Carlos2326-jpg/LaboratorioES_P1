@@ -7,126 +7,30 @@
     <link rel="stylesheet" href="../_shared/css/base.css" />
     <link rel="stylesheet" href="../_shared/css/components.css" />
     <style>
-      .step {
-        display: none;
-      }
-      .step.ativo {
-        display: block;
-      }
-
-      .steps-indicator {
-        display: flex;
-        justify-content: center;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .step-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--cor-borda);
-        transition: background 0.3s;
-      }
-
-      .step-dot.ativo {
-        background: var(--cor-primaria);
-      }
-
-      .codigo-inputs {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-        margin: 1.5rem 0;
-      }
-
-      .codigo-input {
-        width: 48px;
-        height: 56px;
-        text-align: center;
-        font-size: 1.5rem;
-        font-weight: 700;
-        border: 2px solid var(--cor-borda);
-        border-radius: var(--raio);
-        outline: none;
-        transition: border-color 0.2s;
-      }
-
-      .codigo-input:focus {
-        border-color: var(--cor-primaria);
-      }
-
-      .codigo-input.input-erro {
-        border-color: var(--cor-erro);
-      }
-
-      .reenviar {
-        text-align: center;
-        font-size: 0.85rem;
-        color: var(--cor-texto-suave);
-        margin-top: 1rem;
-      }
-
-      .reenviar button {
-        background: none;
-        border: none;
-        color: var(--cor-primaria);
-        cursor: pointer;
-        font-size: 0.85rem;
-        padding: 0;
-      }
-
-      .reenviar button:disabled {
-        color: var(--cor-texto-suave);
-        cursor: default;
-      }
-
-      .timer {
-        font-weight: 600;
-        color: var(--cor-primaria);
-      }
-
-      .requisitos-senha {
-        background: var(--cor-fundo);
-        border-radius: var(--raio);
-        padding: 0.75rem 1rem;
-        margin-bottom: 1rem;
-        font-size: 0.8rem;
-      }
-
-      .requisito {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        color: var(--cor-texto-suave);
-        margin-bottom: 0.25rem;
-        transition: color 0.2s;
-      }
-
-      .requisito.ok {
-        color: var(--cor-sucesso);
-      }
-
-      .requisito::before {
-        content: "○";
-        font-size: 0.7rem;
-      }
-
-      .requisito.ok::before {
-        content: "●";
-      }
-
-      .sucesso-icon {
-        text-align: center;
-        font-size: 3rem;
-        margin-bottom: 1rem;
-      }
+      .step { display: none; }
+      .step.ativo { display: block; }
+      .steps-indicator { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+      .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cor-borda); transition: background 0.3s; }
+      .step-dot.ativo { background: var(--cor-primaria); }
+      .codigo-inputs { display: flex; gap: 0.5rem; justify-content: center; margin: 1.5rem 0; }
+      .codigo-input { width: 48px; height: 56px; text-align: center; font-size: 1.5rem; font-weight: 700; border: 2px solid var(--cor-borda); border-radius: var(--raio); outline: none; transition: border-color 0.2s; }
+      .codigo-input:focus { border-color: var(--cor-primaria); }
+      .codigo-input.input-erro { border-color: var(--cor-erro); }
+      .reenviar { text-align: center; font-size: 0.85rem; color: var(--cor-texto-suave); margin-top: 1rem; }
+      .reenviar button { background: none; border: none; color: var(--cor-primaria); cursor: pointer; font-size: 0.85rem; padding: 0; }
+      .reenviar button:disabled { color: var(--cor-texto-suave); cursor: default; }
+      .timer { font-weight: 600; color: var(--cor-primaria); }
+      .requisitos-senha { background: var(--cor-fundo); border-radius: var(--raio); padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.8rem; }
+      .requisito { display: flex; align-items: center; gap: 0.4rem; color: var(--cor-texto-suave); margin-bottom: 0.25rem; transition: color 0.2s; }
+      .requisito.ok { color: var(--cor-sucesso); }
+      .requisito::before { content: "○"; font-size: 0.7rem; }
+      .requisito.ok::before { content: "●"; }
+      .sucesso-icon { text-align: center; font-size: 3rem; margin-bottom: 1rem; }
     </style>
   </head>
   <body>
     <main class="auth-page">
       <article class="auth-card">
-        <!-- Indicador de etapas -->
         <div class="steps-indicator">
           <div class="step-dot ativo" id="dot-1"></div>
           <div class="step-dot" id="dot-2"></div>
@@ -137,31 +41,14 @@
         <!-- ETAPA 1: Informar e-mail -->
         <div class="step ativo" id="step-1">
           <h1>Esqueci minha senha</h1>
-          <p class="subtitulo">
-            Informe seu e-mail para receber o código de verificação.
-          </p>
-
-          <div
-            class="alerta alerta-erro"
-            id="erro-step1"
-            style="display: none"
-          ></div>
-
+          <p class="subtitulo">Informe seu e-mail para receber o código de verificação.</p>
+          <div class="alerta alerta-erro" id="erro-step1" style="display: none"></div>
           <div class="campo">
             <label for="email">E-mail cadastrado</label>
-            <input
-              type="email"
-              id="email"
-              placeholder="seu@email.com"
-              required
-            />
+            <input type="email" id="email" placeholder="seu@email.com" required />
             <span class="erro" id="erro-email"></span>
           </div>
-
-          <button class="btn btn-primario" id="btn-enviar-codigo">
-            Enviar código
-          </button>
-
+          <button class="btn btn-primario" id="btn-enviar-codigo">Enviar código</button>
           <p class="auth-link" style="margin-top: 1rem">
             <a href="../Usuario/index.html">← Voltar para o login</a>
           </p>
@@ -171,69 +58,20 @@
         <div class="step" id="step-2">
           <h1>Verifique seu e-mail</h1>
           <p class="subtitulo" id="subtitulo-step2">
-            Enviamos um código de 6 dígitos para
-            <strong id="email-enviado"></strong>
+            Enviamos um código de 6 dígitos para <strong id="email-enviado"></strong>
           </p>
-
-          <div
-            class="alerta alerta-erro"
-            id="erro-step2"
-            style="display: none"
-          ></div>
-
+          <div class="alerta alerta-erro" id="erro-step2" style="display: none"></div>
           <div class="codigo-inputs">
-            <input
-              class="codigo-input"
-              maxlength="1"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]"
-            />
-            <input
-              class="codigo-input"
-              maxlength="1"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]"
-            />
-            <input
-              class="codigo-input"
-              maxlength="1"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]"
-            />
-            <input
-              class="codigo-input"
-              maxlength="1"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]"
-            />
-            <input
-              class="codigo-input"
-              maxlength="1"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]"
-            />
-            <input
-              class="codigo-input"
-              maxlength="1"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]"
-            />
+            <input class="codigo-input" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+            <input class="codigo-input" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+            <input class="codigo-input" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+            <input class="codigo-input" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+            <input class="codigo-input" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+            <input class="codigo-input" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
           </div>
-
-          <button class="btn btn-primario" id="btn-verificar-codigo">
-            Verificar código
-          </button>
-
+          <button class="btn btn-primario" id="btn-verificar-codigo">Verificar código</button>
           <div class="reenviar">
-            <span id="texto-reenviar">
-              Reenviar código em <span class="timer" id="timer">45</span>s
-            </span>
+            <span id="texto-reenviar">Reenviar código em <span class="timer" id="timer">45</span>s</span>
             <span id="btn-reenviar-wrap" style="display: none">
               Não recebeu? <button id="btn-reenviar">Reenviar código</button>
             </span>
@@ -244,49 +82,24 @@
         <div class="step" id="step-3">
           <h1>Nova senha</h1>
           <p class="subtitulo">Escolha uma senha forte para sua conta.</p>
-
-          <div
-            class="alerta alerta-erro"
-            id="erro-step3"
-            style="display: none"
-          ></div>
-
+          <div class="alerta alerta-erro" id="erro-step3" style="display: none"></div>
           <div class="requisitos-senha">
             <div class="requisito" id="req-tamanho">Mínimo 8 caracteres</div>
-            <div class="requisito" id="req-maiuscula">
-              Pelo menos 1 letra maiúscula
-            </div>
+            <div class="requisito" id="req-maiuscula">Pelo menos 1 letra maiúscula</div>
             <div class="requisito" id="req-numero">Pelo menos 1 número</div>
-            <div class="requisito" id="req-especial">
-              Pelo menos 1 caractere especial
-            </div>
+            <div class="requisito" id="req-especial">Pelo menos 1 caractere especial</div>
           </div>
-
           <div class="campo">
             <label for="nova-senha">Nova senha</label>
-            <input
-              type="password"
-              id="nova-senha"
-              placeholder="Digite a nova senha"
-              required
-            />
+            <input type="password" id="nova-senha" placeholder="Digite a nova senha" required />
             <span class="erro" id="erro-nova-senha"></span>
           </div>
-
           <div class="campo">
             <label for="confirmar-senha">Confirmar nova senha</label>
-            <input
-              type="password"
-              id="confirmar-senha"
-              placeholder="Repita a nova senha"
-              required
-            />
+            <input type="password" id="confirmar-senha" placeholder="Repita a nova senha" required />
             <span class="erro" id="erro-confirmar-senha"></span>
           </div>
-
-          <button class="btn btn-primario" id="btn-redefinir">
-            Redefinir senha
-          </button>
+          <button class="btn btn-primario" id="btn-redefinir">Redefinir senha</button>
         </div>
 
         <!-- ETAPA 4: Sucesso -->
@@ -294,215 +107,233 @@
           <div class="sucesso-icon">✅</div>
           <h1 style="text-align: center">Senha redefinida!</h1>
           <p class="subtitulo" style="text-align: center">
-            Sua senha foi alterada com sucesso. Você já pode fazer login com a
-            nova senha.
+            Sua senha foi alterada com sucesso. Você já pode fazer login com a nova senha.
           </p>
-          <a
-            href="../Usuario/index.html"
-            class="btn btn-primario"
-            style="display: block; text-align: center; margin-top: 1.5rem"
-          >
+          <a href="../Usuario/index.html" class="btn btn-primario" style="display: block; text-align: center; margin-top: 1.5rem">
             Ir para o login
           </a>
         </div>
       </article>
     </main>
 
-    <script type="module">
-      import {
-        validarEmail,
-        campoVazio,
-        validarConfirmacao,
-      } from "../_shared/js/validacao.js";
+    <script src="/_shared/js/utils.js"></script>
+    <script>
+      const API = API_URL;
 
-      // ─── Navegação entre etapas ───
       let etapaAtual = 1;
-      let emailUsuario = "";
-      let tokenValido = false;
+      let emailUsuario = '';
+      let resetToken = '';
       let intervaloTimer = null;
 
       function irParaEtapa(n) {
-        document
-          .querySelectorAll(".step")
-          .forEach((s) => s.classList.remove("ativo"));
-        document
-          .querySelectorAll(".step-dot")
-          .forEach((d) => d.classList.remove("ativo"));
-        document.getElementById(`step-${n}`).classList.add("ativo");
-        document.getElementById(`dot-${n}`).classList.add("ativo");
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('ativo'));
+        document.querySelectorAll('.step-dot').forEach(d => d.classList.remove('ativo'));
+        document.getElementById(`step-${n}`).classList.add('ativo');
+        document.getElementById(`dot-${n}`).classList.add('ativo');
         etapaAtual = n;
       }
 
+      function mostrarErro(id, msg) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.style.display = 'block';
+      }
+
+      function esconderErro(id) {
+        const el = document.getElementById(id);
+        el.style.display = 'none';
+      }
+
       // ─── ETAPA 1: Enviar código ───
-      document
-        .getElementById("btn-enviar-codigo")
-        .addEventListener("click", async () => {
-          const email = document.getElementById("email").value.trim();
-          const erroEmail = document.getElementById("erro-email");
-          const erroStep = document.getElementById("erro-step1");
+      document.getElementById('btn-enviar-codigo').addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        const erroEmail = document.getElementById('erro-email');
+        erroEmail.textContent = '';
+        esconderErro('erro-step1');
 
-          erroEmail.textContent = "";
-          erroStep.style.display = "none";
+        if (!email) { erroEmail.textContent = 'Informe seu e-mail.'; return; }
+        if (!validarEmail(email)) { erroEmail.textContent = 'E-mail inválido.'; return; }
 
-          if (campoVazio(email)) {
-            erroEmail.textContent = "Informe seu e-mail.";
-            return;
-          }
+        const btn = document.getElementById('btn-enviar-codigo');
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
 
-          if (!validarEmail(email)) {
-            erroEmail.textContent = "E-mail inválido.";
-            return;
-          }
+        try {
+          const res = await fetch(`${API}/usuario/solicitar-redefinicao`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          const data = await res.json();
 
-          // ── Integrar backend aqui ──
-
+          // Backend retorna sucesso mesmo se email não existir (segurança)
           emailUsuario = email;
-          document.getElementById("email-enviado").textContent = email;
+          document.getElementById('email-enviado').textContent = email;
           iniciarTimer();
           irParaEtapa(2);
-        });
+        } catch (e) {
+          mostrarErro('erro-step1', 'Erro ao conectar com o servidor. Tente novamente.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Enviar código';
+        }
+      });
 
       // ─── Timer de reenvio ───
       function iniciarTimer() {
         let segundos = 45;
-        const timerEl = document.getElementById("timer");
-        const textoEl = document.getElementById("texto-reenviar");
-        const btnWrap = document.getElementById("btn-reenviar-wrap");
+        const timerEl = document.getElementById('timer');
+        const textoEl = document.getElementById('texto-reenviar');
+        const btnWrap = document.getElementById('btn-reenviar-wrap');
 
-        textoEl.style.display = "inline";
-        btnWrap.style.display = "none";
+        textoEl.style.display = 'inline';
+        btnWrap.style.display = 'none';
         timerEl.textContent = segundos;
 
         if (intervaloTimer) clearInterval(intervaloTimer);
-
         intervaloTimer = setInterval(() => {
           segundos--;
           timerEl.textContent = segundos;
           if (segundos <= 0) {
             clearInterval(intervaloTimer);
-            textoEl.style.display = "none";
-            btnWrap.style.display = "inline";
+            textoEl.style.display = 'none';
+            btnWrap.style.display = 'inline';
           }
         }, 1000);
       }
 
       // ─── Navegação automática entre campos do código ───
-      const codigoInputs = document.querySelectorAll(".codigo-input");
-
+      const codigoInputs = document.querySelectorAll('.codigo-input');
       codigoInputs.forEach((input, index) => {
-        input.addEventListener("input", (e) => {
-          // Aceita só números
-          e.target.value = e.target.value.replace(/[^0-9]/g, "");
+        input.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/[^0-9]/g, '');
           if (e.target.value && index < codigoInputs.length - 1) {
             codigoInputs[index + 1].focus();
           }
         });
-
-        input.addEventListener("keydown", (e) => {
-          if (e.key === "Backspace" && !e.target.value && index > 0) {
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !e.target.value && index > 0) {
             codigoInputs[index - 1].focus();
           }
         });
       });
 
       function obterCodigo() {
-        return [...codigoInputs].map((i) => i.value).join("");
+        return [...codigoInputs].map(i => i.value).join('');
       }
 
       // ─── ETAPA 2: Verificar código ───
-      document
-        .getElementById("btn-verificar-codigo")
-        .addEventListener("click", async () => {
-          const codigo = obterCodigo();
-          const erroStep = document.getElementById("erro-step2");
+      document.getElementById('btn-verificar-codigo').addEventListener('click', async () => {
+        const codigo = obterCodigo();
+        esconderErro('erro-step2');
+        codigoInputs.forEach(i => i.classList.remove('input-erro'));
 
-          erroStep.style.display = "none";
-          codigoInputs.forEach((i) => i.classList.remove("input-erro"));
+        if (codigo.length < 6) {
+          mostrarErro('erro-step2', 'Preencha todos os 6 dígitos do código.');
+          codigoInputs.forEach(i => { if (!i.value) i.classList.add('input-erro'); });
+          return;
+        }
 
-          if (codigo.length < 6) {
-            erroStep.textContent = "Preencha todos os 6 dígitos do código.";
-            erroStep.style.display = "block";
-            codigoInputs.forEach((i) => {
-              if (!i.value) i.classList.add("input-erro");
-            });
+        const btn = document.getElementById('btn-verificar-codigo');
+        btn.disabled = true;
+        btn.textContent = 'Verificando...';
+
+        try {
+          const res = await fetch(`${API}/usuario/verificar-reset-token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailUsuario, otp: codigo })
+          });
+          const data = await res.json();
+
+          if (!data.success) {
+            mostrarErro('erro-step2', data.error || 'Código incorreto ou expirado.');
+            codigoInputs.forEach(i => i.classList.add('input-erro'));
             return;
           }
 
-          // ── Integrar backend aqui ──
-
-          // Simulação local — remover quando backend estiver pronto
-          tokenValido = true;
+          resetToken = data.data.token;
           if (intervaloTimer) clearInterval(intervaloTimer);
           irParaEtapa(3);
-        });
+        } catch (e) {
+          mostrarErro('erro-step2', 'Erro ao conectar com o servidor. Tente novamente.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Verificar código';
+        }
+      });
 
       // ─── Reenviar código ───
-      document
-        .getElementById("btn-reenviar")
-        .addEventListener("click", async () => {
-          // ── Integrar backend aqui ──
-
-          codigoInputs.forEach((i) => {
-            i.value = "";
-            i.classList.remove("input-erro");
+      document.getElementById('btn-reenviar').addEventListener('click', async () => {
+        try {
+          await fetch(`${API}/usuario/solicitar-redefinicao`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailUsuario })
           });
-          codigoInputs[0].focus();
-          document.getElementById("erro-step2").style.display = "none";
-          iniciarTimer();
-        });
+        } catch (e) {}
 
-      // ─── ETAPA 3: Validação de requisitos em tempo real ───
-      document.getElementById("nova-senha").addEventListener("input", (e) => {
+        codigoInputs.forEach(i => { i.value = ''; i.classList.remove('input-erro'); });
+        codigoInputs[0].focus();
+        esconderErro('erro-step2');
+        iniciarTimer();
+      });
+
+      // ─── ETAPA 3: Validação de requisitos ───
+      document.getElementById('nova-senha').addEventListener('input', (e) => {
         const senha = e.target.value;
-        verificarRequisito("req-tamanho", senha.length >= 8);
-        verificarRequisito("req-maiuscula", /[A-Z]/.test(senha));
-        verificarRequisito("req-numero", /[0-9]/.test(senha));
-        verificarRequisito("req-especial", /[^a-zA-Z0-9]/.test(senha));
+        verificarRequisito('req-tamanho', senha.length >= 8);
+        verificarRequisito('req-maiuscula', /[A-Z]/.test(senha));
+        verificarRequisito('req-numero', /[0-9]/.test(senha));
+        verificarRequisito('req-especial', /[^a-zA-Z0-9]/.test(senha));
       });
 
       function verificarRequisito(id, ok) {
-        const el = document.getElementById(id);
-        el.classList.toggle("ok", ok);
+        document.getElementById(id).classList.toggle('ok', ok);
       }
 
       function senhaForte(senha) {
-        return (
-          senha.length >= 8 &&
-          /[A-Z]/.test(senha) &&
-          /[0-9]/.test(senha) &&
-          /[^a-zA-Z0-9]/.test(senha)
-        );
+        return senha.length >= 8 && /[A-Z]/.test(senha) && /[0-9]/.test(senha) && /[^a-zA-Z0-9]/.test(senha);
       }
 
       // ─── ETAPA 3: Redefinir senha ───
-      document
-        .getElementById("btn-redefinir")
-        .addEventListener("click", async () => {
-          const novaSenha = document.getElementById("nova-senha").value;
-          const confirmarSenha =
-            document.getElementById("confirmar-senha").value;
-          const erroNova = document.getElementById("erro-nova-senha");
-          const erroConfirmar = document.getElementById("erro-confirmar-senha");
-          const erroStep = document.getElementById("erro-step3");
+      document.getElementById('btn-redefinir').addEventListener('click', async () => {
+        const novaSenha = document.getElementById('nova-senha').value;
+        const confirmarSenha = document.getElementById('confirmar-senha').value;
+        const erroNova = document.getElementById('erro-nova-senha');
+        const erroConfirmar = document.getElementById('erro-confirmar-senha');
+        erroNova.textContent = '';
+        erroConfirmar.textContent = '';
+        esconderErro('erro-step3');
 
-          erroNova.textContent = "";
-          erroConfirmar.textContent = "";
-          erroStep.style.display = "none";
+        if (!senhaForte(novaSenha)) { erroNova.textContent = 'A senha não atende todos os requisitos.'; return; }
+        if (novaSenha !== confirmarSenha) { erroConfirmar.textContent = 'As senhas não coincidem.'; return; }
 
-          if (!senhaForte(novaSenha)) {
-            erroNova.textContent = "A senha não atende todos os requisitos.";
+        const btn = document.getElementById('btn-redefinir');
+        btn.disabled = true;
+        btn.textContent = 'Redefinindo...';
+
+        try {
+          const res = await fetch(`${API}/usuario/redefinir-senha`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: resetToken, novaSenha })
+          });
+          const data = await res.json();
+
+          if (!data.success) {
+            mostrarErro('erro-step3', data.error || 'Erro ao redefinir senha.');
             return;
           }
-
-          if (!validarConfirmacao(novaSenha, confirmarSenha)) {
-            erroConfirmar.textContent = "As senhas não coincidem.";
-            return;
-          }
-
-          // ── Integrar backend aqui ──
 
           irParaEtapa(4);
-        });
+        } catch (e) {
+          mostrarErro('erro-step3', 'Erro ao conectar com o servidor. Tente novamente.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Redefinir senha';
+        }
+      });
     </script>
   </body>
 </html>

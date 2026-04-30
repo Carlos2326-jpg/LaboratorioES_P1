@@ -1,5 +1,3 @@
-import { API, showAlert, formatarData, getUsuarioLogado } from '../../_shared/js/utils.js';
-
 let currentPage = 1;
 let currentCategoria = '';
 let currentBusca = '';
@@ -36,7 +34,7 @@ async function loadLayouts() {
 // Carregar categorias para filtro
 async function carregarCategorias() {
     try {
-        const response = await fetch(`${API}/categorias`);
+        const response = await fetch(`${API_URL}/categorias`);
         const result = await response.json();
 
         if (result.success && result.data) {
@@ -76,7 +74,7 @@ async function carregarPostagens() {
     semResultados.style.display = 'none';
 
     try {
-        let url = `${API}/postagens?page=${currentPage}&limit=9`;
+        let url = `${API_URL}/postagens?page=${currentPage}&limit=9`;
         if (currentCategoria) url += `&categoria=${currentCategoria}`;
         if (currentBusca) url += `&busca=${encodeURIComponent(currentBusca)}`;
 

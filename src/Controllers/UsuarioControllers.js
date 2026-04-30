@@ -54,6 +54,14 @@ class UsuarioController {
                 });
             }
 
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({ success: false, error: 'Email inválido' });
+            }
+            if (confirmarEmail && email.trim().toLowerCase() !== confirmarEmail.trim().toLowerCase()) {
+                return res.status(400).json({ success: false, error: 'Os emails não coincidem' });
+            }
+
             const resultado = await this.usuarioService.cadastrar({
                 nome,
                 email: email.trim().toLowerCase(),

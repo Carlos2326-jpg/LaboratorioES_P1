@@ -8,16 +8,19 @@ const nodemailer = require('nodemailer');
 class UsuarioService {
     constructor() {
         this.usuarioModel = new UsuarioModel();
-
-        this.transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: false,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
-            },
-            tls: { rejectUnauthorized: false }
+        
+        nodemailer.createTestAccount().then(account => {
+            this.transporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                auth: {
+                    user: account.user,
+                    pass: account.pass
+                }
+            });
+            this.etherealUser = account.user;
+            this.etherealPass = account.pass;
+            console.log('📧 Ethereal Email:', account.user, '| Senha:', account.pass);
         });
     }
 
@@ -142,6 +145,12 @@ class UsuarioService {
     }
 
     async enviarOTP(email, usuario, tipo = 'verificacao') {
+        if (!this.transporter) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        if (!this.transporter) {
+            throw new Error('Serviço de email não está pronto. Tente novamente.');
+        }
         const otp = this.gerarOTP();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
@@ -154,18 +163,18 @@ class UsuarioService {
         const htmlEmail = this.criarTemplateOTP(otp, email, tipo, usuario.nomeCompleto);
 
         try {
-            await this.transporter.sendMail({
-                from: `"Blog de Notícias" <${process.env.SMTP_USER}>`,
-                to: email,
-                subject: tipo === 'reset'
-                    ? `Redefinir senha (${otp}) - Blog de Notícias`
-                    : `Seu código de verificação (${otp})`,
-                html: htmlEmail,
-                text: `Seu código: ${otp} (válido por 10 minutos)`
-            });
+          const info = await this.transporter.sendMail({
+              from: `"Blog de Notícias" <${this.etherealUser}>`,
+              to: email,
+              subject: tipo === 'reset'
+                  ? `Redefinir senha (${otp}) - Blog de Notícias`
+                  : `Seu código de verificação (${otp})`,
+              html: htmlEmail,
+              text: `Seu código: ${otp} (válido por 10 minutos)`
+          });
+          console.log('📬 Ver email:', nodemailer.getTestMessageUrl(info));
         } catch (error) {
             console.error('❌ Erro ao enviar email OTP:', error.message);
-            // Limpa OTP salvo se email falhou
             await this.usuarioModel.clearOTP(usuario.idUsuario);
             throw new Error('Erro ao enviar código por email. Verifique a configuração SMTP.');
         }

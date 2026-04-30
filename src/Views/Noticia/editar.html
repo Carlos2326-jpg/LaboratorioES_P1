@@ -574,7 +574,7 @@
         try {
           const res = await fetch(`${API_URL}/postagens/${postagemId}`, {
             method: "PUT",
-            headers: getAuthHeader(),
+            headers: { ...getAuthHeader(), "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
           const result = await res.json();
