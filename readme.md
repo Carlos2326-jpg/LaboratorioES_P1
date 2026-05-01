@@ -28,17 +28,21 @@ Conta com funcionalidades como sistema de busca e categorização por temas, tor
 3. Configure o banco de dados no MySQL Workbench.  
 
 4. Baixe e instale pelo site oficial:
+
    https://nodejs.org/
 
-5. Verifique se o Node.js e o npm foram instalados
+6. Verifique se o Node.js e o npm foram instalados
+
    node -v
 
    npm -v
 
-6. Instale os pacotes necessários
+7. Instale os pacotes necessários
+
    npm install
 
-7. Execute o projeto
+9. Execute o projeto
+
    npm run dev
 
 ## Estrutura do projeto
