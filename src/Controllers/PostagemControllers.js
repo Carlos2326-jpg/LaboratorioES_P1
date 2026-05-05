@@ -7,15 +7,18 @@ class PostagemController {
     }
 
     async listarPublicadas(req, res) {
-        try {
-            const page  = parseInt(req.query.page) || 1;
-            const limit = Math.min(parseInt(req.query.limit) || 10, 50);
-            const resultado = await this.postagemService.listarPublicadas(page, limit);
-            res.json({ success: true, ...resultado });
-        } catch (error) {
-            console.error('Erro ao listar postagens:', error.message);
-            res.status(500).json({ success: false, error: error.message });
-        }
+    try {
+        const page  = parseInt(req.query.page) || 1;
+        const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+        const categoriaId = req.query.categoriaId ? parseInt(req.query.categoriaId) : null;  // ✅ ADICIONAR
+        const termo = req.query.termo || '';  // ✅ ADICIONAR
+        
+        const resultado = await this.postagemService.listarPublicadasComFiltro(page, limit, categoriaId, termo);  // ✅ NOVO MÉTODO
+        res.json({ success: true, ...resultado });
+    } catch (error) {
+        console.error('Erro ao listar postagens:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
     }
 
     async buscarPorId(req, res) {

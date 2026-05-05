@@ -75,8 +75,8 @@ async function carregarPostagens() {
 
     try {
         let url = `${API_URL}/postagens?page=${currentPage}&limit=9`;
-        if (currentCategoria) url += `&categoria=${currentCategoria}`;
-        if (currentBusca) url += `&busca=${encodeURIComponent(currentBusca)}`;
+        if (currentCategoria) url += `&categoriaId=${currentCategoria}`;
+        if (currentBusca) url += `&termo=${encodeURIComponent(currentBusca)}`;
 
         const response = await fetch(url);
         const result = await response.json();

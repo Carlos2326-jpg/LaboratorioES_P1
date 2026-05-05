@@ -252,6 +252,52 @@ class PostagemService {
             console.error('Erro ao incrementar visualizações:', error.message);
         }
     }
+
+    async listarPublicadasComFiltro(page = 1, limit = 10, categoriaId = null, termo = '') {
+    const offset = (page - 1) * limit;
+    
+    let whereClause = "p.status = 'publicado' AND p.dataPostagem <= NOW()";
+    const params = [];
+    
+    if (termo) {
+        whereClause += " AND (p.titulo LIKE ? OR p.resumo LIKE ? OR p.conteudo LIKE ?)";
+        params.push(`%${termo}%`, `%${termo}%`, `%${termo}%`);
+    }
+    
+    if (categoriaId) {
+        whereClause += " AND EXISTS (SELECT 1 FROM Postagem_Categoria pc WHERE pc.postagem_id = p.idPostagem AND pc.categoria_id = ?)";
+        params.push(parseInt(categoriaId));
+    }
+    
+    const query = `
+        SELECT
+            p.*,
+            u.nomeCompleto as autor_nome,
+            GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
+        FROM ${this.postagemModel.table} p
+        LEFT JOIN Usuario u ON p.usuario_idUsuario = u.idUsuario
+        LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
+        LEFT JOIN Categorias c ON pc.categoria_id = c.idCategoria
+        WHERE ${whereClause}
+        GROUP BY p.idPostagem
+        ORDER BY p.dataPostagem DESC
+        LIMIT ? OFFSET ?
+    `;
+    
+    params.push(limit, offset);
+    
+    const postagens = await this.postagemModel.db.query(query, params);
+    const totalQuery = `SELECT COUNT(DISTINCT p.idPostagem) as total FROM ${this.postagemModel.table} p WHERE ${whereClause}`;
+    const [{ total }] = await this.postagemModel.db.query(totalQuery, params.slice(0, -2));
+    
+    return {
+        data: postagens,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+    };
+}
 }
 
 module.exports = PostagemService;

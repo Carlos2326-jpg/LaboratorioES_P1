@@ -8,17 +8,17 @@ class PostagemModel extends BaseModel {
 
     async findBySlug(slug) {
         const query = `
-            SELECT
-                p.*,
-                u.nomeCompleto as autor_nome,
-                GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
-            FROM ${this.table} p
-            LEFT JOIN Usuario u ON p.usuario_idUsuario = u.idUsuario
-            LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
-            LEFT JOIN Categorias c ON pc.categoria_id = c.idCategoria
-            WHERE p.slug = ?
-            GROUP BY p.idPostagem
-        `;
+        SELECT
+            p.*,
+            u.nomeCompleto as autor_nome,
+            COALESCE(GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', '), 'Sem categoria') as categorias_nome  -- ✅ COALESCE
+        FROM ${this.table} p
+        LEFT JOIN Usuario u ON p.usuario_idUsuario = u.idUsuario
+        LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
+        LEFT JOIN Categorias c ON pc.categoria_id = c.idCategoria AND c.status = 'ativo'  -- ✅ + filtro ativo
+        WHERE p.slug = ?
+        GROUP BY p.idPostagem
+    `;
         const rows = await this.db.query(query, [slug]);
         return rows[0] || null;
     }
@@ -27,35 +27,51 @@ class PostagemModel extends BaseModel {
         const offset = (page - 1) * limit;
         return await this.db.query(
             `SELECT p.*,
-             GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
-             FROM ${this.table} p
-             LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
-             LEFT JOIN Categorias c ON pc.categoria_id = c.idCategoria
-             WHERE p.usuario_idUsuario = ?
-             GROUP BY p.idPostagem
-             ORDER BY p.dataPostagem DESC
-             LIMIT ? OFFSET ?`,
+            GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
+            FROM ${this.table} p
+            LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
+            LEFT JOIN Categorias c ON pc.categoria_id = c.idCategoria
+            WHERE p.usuario_idUsuario = ?
+            GROUP BY p.idPostagem
+            ORDER BY p.dataPostagem DESC
+            LIMIT ? OFFSET ?`,
             [usuarioId, limit, offset]
         );
     }
 
-    async findPublicadas(page = 1, limit = 10) {
+    async findPublicadas(page = 1, limit = 10, categoriaId = null, termo = '') {
         const offset = (page - 1) * limit;
+
+        let whereClause = "p.status = 'publicado' AND p.dataPostagem <= NOW()";
+        const params = [];
+
+        if (termo) {
+            whereClause += " AND (p.titulo LIKE ? OR p.conteudo LIKE ? OR p.resumo LIKE ?)";
+            params.push(`%${termo}%`, `%${termo}%`, `%${termo}%`);
+        }
+
+        if (categoriaId) {
+            whereClause += " AND EXISTS (SELECT 1 FROM Postagem_Categoria pc WHERE pc.postagem_id = p.idPostagem AND pc.categoria_id = ?)";
+            params.push(parseInt(categoriaId));
+        }
+
         const query = `
-            SELECT
-                p.*,
-                u.nomeCompleto as autor_nome,
-                GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_nome
-            FROM ${this.table} p
-            LEFT JOIN Usuario u ON p.usuario_idUsuario = u.idUsuario
-            LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
-            LEFT JOIN Categorias c ON pc.categoria_id = c.idCategoria
-            WHERE p.status = 'publicado' AND p.dataPostagem <= NOW()
-            GROUP BY p.idPostagem
-            ORDER BY p.dataPostagem DESC
-            LIMIT ? OFFSET ?
-        `;
-        return await this.db.query(query, [limit, offset]);
+        SELECT
+            p.*,
+            u.nomeCompleto as autor_nome,
+            COALESCE(GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', '), 'Geral') as categorias_nome  -- ✅ COALESCE
+        FROM ${this.table} p
+        LEFT JOIN Usuario u ON p.usuario_idUsuario = u.idUsuario
+        LEFT JOIN Postagem_Categoria pc ON p.idPostagem = pc.postagem_id
+        LEFT JOIN Categorias c ON pc.categoria_id = c.idCategoria AND c.status = 'ativo'  -- ✅ FILTRO ATIVO
+        WHERE ${whereClause}
+        GROUP BY p.idPostagem
+        ORDER BY p.dataPostagem DESC
+        LIMIT ? OFFSET ?
+    `;
+
+        params.push(limit, offset);
+        return await this.db.query(query, params);
     }
 
     async findRecentes(limit = 5) {
